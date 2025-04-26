@@ -1,121 +1,158 @@
-import React, { useEffect, useState } from 'react';
-import { createClient } from '@sanity/client';
-import Image from 'next/image';
+// pages/index.js
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { createClient } from '@sanity/client'
+import { useRouter } from 'next/router'
 
 const client = createClient({
   projectId: 'v0ejlvd9',
   dataset: 'production',
   useCdn: true,
   apiVersion: '2023-01-01',
-});
+})
 
 export default function HomePage() {
-  const [restaurants, setRestaurants] = useState([]);
+  const [restaurants, setRestaurants] = useState([])
+  const [article, setArticle] = useState(null)
+  const [search, setSearch] = useState('')
+  const router = useRouter()
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await client.fetch(`*[_type == "restaurant"][0...9]{
+    // Fetch Top Picks (featured restaurants)
+    client
+      .fetch(
+        `*[_type == "restaurant" && featured == true][0...4]{
           _id,
           name,
-          neighborhood,
+          neighbourhood,
           streetAddress,
           cuisine,
           priceRange,
           description,
           tags,
-          googleMapLink,
-          website,
-          photoUrl
-        }`);
-        setRestaurants(data);
-      } catch (error) {
-        console.error('Error fetching homepage data:', error);
-      }
-    };
+          googleMapsLink,
+          instagramOrWebsite,
+          "photo": coalesce(photoUploads[0].asset->url, photoUrls[0])
+        }`
+      )
+      .then(setRestaurants)
+      .catch(console.error)
 
-    fetchData();
-  }, []);
+    // Fetch latest Article
+    client
+      .fetch(
+        `*[_type == "article"]|order(publishedAt desc)[0]{
+          _id,
+          title,
+          excerpt,
+          "imageUrl": coverImage.asset->url,
+          "author": author->name,
+          slug
+        }`
+      )
+      .then(setArticle)
+      .catch(console.error)
+  }, [])
+
+  const onSearch = (e) => {
+    e.preventDefault()
+    if (search.trim()) {
+      router.push(`/restaurants?search=${encodeURIComponent(search)}`)
+    }
+  }
 
   return (
-    <div className="bg-white min-h-screen font-sans">
-      {/* Hero */}
-      <section className="bg-green-700 text-white py-16 px-6 text-center">
-        <h1 className="text-4xl font-bold mb-4">🍽️ Discover Kigali’s Best Restaurants</h1>
-        <p className="text-lg">Curated. Local. Delicious. Powered by GoMange.</p>
+    <div className="min-h-screen bg-gray-50 font-sans">
+      {/* NAV */}
+      <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
+        <Link href="/"><a className="text-xl font-bold text-green-700">GoMange</a></Link>
+        <div className="space-x-6">
+          <Link href="/restaurants"><a className="hover:text-green-700">Restaurants</a></Link>
+          <Link href="/collections"><a className="hover:text-green-700">Collections</a></Link>
+          <Link href="/suggest"><a className="hover:text-green-700">Suggest a Spot</a></Link>
+          <Link href="/signin">
+            <a className="px-4 py-2 bg-green-700 text-white rounded-full hover:bg-green-800">
+              Sign In
+            </a>
+          </Link>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section className="text-center py-20 px-6">
+        <h1 className="text-3xl md:text-5xl font-bold mb-4">Explore Kigali’s Best Restaurants</h1>
+        <p className="text-gray-600 mb-8">Fork-meets-Kigali — curated local eats at your fingertips.</p>
+        <form onSubmit={onSearch} className="max-w-xl mx-auto flex">
+          <input
+            type="text"
+            placeholder="Search restaurants…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-grow px-4 py-3 rounded-l-full border border-gray-300 focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="px-4 bg-green-700 text-white rounded-r-full hover:bg-green-800"
+          >
+            🔍
+          </button>
+        </form>
       </section>
 
-      {/* Featured Restaurants */}
+      {/* TOP PICKS */}
       <section className="px-6 md:px-16 py-12">
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800">🌟 Featured This Week</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <h2 className="text-2xl font-semibold mb-6">Top Picks</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {restaurants.map((r) => (
-            <div
-              key={r._id}
-              className="bg-white shadow-md rounded-2xl overflow-hidden hover:shadow-xl transition"
-            >
-              {r.photoUrl && (
-                <Image
-                  src={r.photoUrl}
-                  alt={r.name}
-                  width={500}
-                  height={300}
-                  className="w-full h-48 object-cover"
-                />
-              )}
-              <div className="p-4">
-                <h3 className="text-xl font-semibold text-gray-800">{r.name}</h3>
-                <p className="text-sm text-gray-500">
-                  {r.neighborhood}
-                  {r.streetAddress ? `, ${r.streetAddress}` : ''}
-                </p>
-                <p className="text-sm mt-1 text-gray-700">
-                  {r.cuisine} • {r.priceRange}
-                </p>
-                <p className="text-sm mt-2 text-gray-600">{r.description}</p>
-
-                {/* Tags */}
-                {r.tags?.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {r.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Links */}
-                <div className="mt-4 flex flex-wrap gap-4 text-sm">
-                  {r.website && (
-                    <a
-                      href={r.website.startsWith('http') ? r.website : `https://${r.website}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      Instagram / Website
-                    </a>
-                  )}
-                  {r.googleMapLink && (
-                    <a
-                      href={r.googleMapLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      Google Maps
-                    </a>
-                  )}
+            <Link key={r._id} href={`/restaurants/${r._id}`}>
+              <a className="block bg-white rounded-2xl overflow-hidden shadow hover:shadow-lg transition">
+                <div className="relative h-40 w-full">
+                  <Image
+                    src={r.photo || 'https://source.unsplash.com/featured/?restaurant,food'}
+                    alt={r.name}
+                    layout="fill"
+                    className="object-cover"
+                  />
                 </div>
-              </div>
-            </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-lg">{r.name}</h3>
+                  <p className="text-gray-600 text-sm mt-1">
+                    {r.cuisine} • {r.priceRange}
+                  </p>
+                </div>
+              </a>
+            </Link>
           ))}
         </div>
       </section>
+
+      {/* FEATURED ARTICLE */}
+      {article && (
+        <section className="px-6 md:px-16 py-12 bg-white">
+          <h2 className="text-2xl font-semibold mb-4">Traditional Food</h2>
+          <Link href={`/articles/${article.slug.current}`}>
+            <a className="block sm:flex bg-gray-100 rounded-2xl overflow-hidden hover:shadow-md transition">
+              <div className="relative sm:w-1/2 h-40 sm:h-auto">
+                <Image
+                  src={article.imageUrl}
+                  alt={article.title}
+                  layout="fill"
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-6 sm:w-1/2">
+                <h3 className="font-bold text-xl">{article.title}</h3>
+                <p className="text-gray-600 mt-2">{article.excerpt}</p>
+                <p className="text-gray-500 text-sm mt-4">By {article.author}</p>
+                <button className="mt-6 px-6 py-2 bg-green-700 text-white rounded-full hover:bg-green-800">
+                  Read More
+                </button>
+              </div>
+            </a>
+          </Link>
+        </section>
+      )}
     </div>
-  );
+)
 }

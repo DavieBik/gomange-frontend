@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
   images: {
-    domains: ['images.unsplash.com'], // add other domains if needed
+    domains: ['images.unsplash.com', 'cdn.sanity.io', 'res.cloudinary.com'],
   },
 }
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@sanity/client';
+import Image from 'next/image';
 
 const client = createClient({
   projectId: 'v0ejlvd9',
@@ -37,8 +38,8 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="bg-white min-h-screen">
-      {/* Hero Header */}
+    <div className="bg-white min-h-screen font-sans">
+      {/* Hero */}
       <section className="bg-green-700 text-white py-16 px-6 text-center">
         <h1 className="text-4xl font-bold mb-4">🍽️ Discover Kigali’s Best Restaurants</h1>
         <p className="text-lg">Curated. Local. Delicious. Powered by GoMange.</p>
@@ -53,11 +54,15 @@ export default function HomePage() {
               key={r._id}
               className="bg-white shadow-md rounded-2xl overflow-hidden hover:shadow-xl transition"
             >
-              <img
-                src={r.photoUrl || 'https://source.unsplash.com/featured/?restaurant,food'}
-                alt={r.name}
-                className="w-full h-48 object-cover"
-              />
+              {r.photoUrl && (
+                <Image
+                  src={r.photoUrl}
+                  alt={r.name}
+                  width={500}
+                  height={300}
+                  className="w-full h-48 object-cover"
+                />
+              )}
               <div className="p-4">
                 <h3 className="text-xl font-semibold text-gray-800">{r.name}</h3>
                 <p className="text-sm text-gray-500">

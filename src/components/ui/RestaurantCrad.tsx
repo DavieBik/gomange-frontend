@@ -15,18 +15,18 @@ interface RestaurantCardProps {
 }
 
 const CUISINE_PLACEHOLDERS: Record<string, string> = {
-  italian: '/images/placeholders/italian.jpg',
-  mexican: '/images/placeholders/mexican.jpg',
-  asian: '/images/placeholders/asian.jpg',
-  sushi: '/images/placeholders/asian.jpg',
-  chinese: '/images/placeholders/asian.jpg',
-  burger: '/images/placeholders/burger.jpg',
-  american: '/images/placeholders/burger.jpg',
-  vegetarian: '/images/placeholders/vegetarian.jpg',
-  vegan: '/images/placeholders/vegetarian.jpg',
-  seafood: '/images/placeholders/seafood.jpg',
-  fish: '/images/placeholders/seafood.jpg',
-  default: '/images/placeholders/default.jpg',
+  italian: '/placeholder/italian.jpg',
+  mexican: '/placeholder/mexican.jpg',
+  asian: '/placeholder/asian.jpg',
+  sushi: '/placeholder/asian.jpg',
+  chinese: '/placeholder/asian.jpg',
+  burger: '/placeholder/burger.jpg',
+  american: '/placeholder/burger.jpg',
+  vegetarian: '/placeholder/vegetarian.jpg',
+  vegan: '/placeholder/vegetarian.jpg',
+  seafood: '/placeholder/seafood.jpg',
+  fish: '/placeholder/seafood.jpg',
+  default: '/placeholder/default.jpg',
 }
 
 const getValidImageUrl = (url: string | null | undefined): string => {

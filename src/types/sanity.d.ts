@@ -1,6 +1,7 @@
 // src/types/sanity.d.ts
 
-declare namespace Sanity {
+export namespace Sanity {
+  // Base Types
   interface Reference {
     _ref: string
     _type: 'reference'
@@ -22,6 +23,7 @@ declare namespace Sanity {
     _type: 'block'
   }
 
+  // Document Types
   interface Restaurant {
     _id: string
     _createdAt: string

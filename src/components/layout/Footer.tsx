@@ -8,7 +8,7 @@ export default function Footer() {
           <div className="md:col-span-2">
             <div className="flex items-center mb-6">
               <Image
-                src="/images/logo/logo-white.png" 
+                src="/images/logo-white.png" 
                 alt="GoMange Logo"
                 width={160}
                 height={60}

@@ -35,7 +35,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center h-full">
             <Image
-              src="/images/logo/logo.png"
+              src="/images/logo.png"
               alt="GoMange Logo"
               height={180}
               width={150}

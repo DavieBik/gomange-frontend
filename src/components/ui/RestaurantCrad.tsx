@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { urlFor } from '@/lib/sanity'
-import type { Sanity } from '@/types/sanity'
+import type { Sanity } from '../../types/sanity'
 
 type RestaurantCardVariant = 'default' | 'featured' | 'traditional'
 
@@ -26,12 +26,12 @@ const CUISINE_PLACEHOLDERS: Record<string, string> = {
   vegan: '/images/placeholders/vegetarian.jpg',
   seafood: '/images/placeholders/seafood.jpg',
   fish: '/images/placeholders/seafood.jpg',
-  default: '/images/placeholders/default.jpg'
+  default: '/images/placeholders/default.jpg',
 }
 
 const getValidImageUrl = (url: string | null | undefined): string => {
-  return url && typeof url === 'string' && url.trim() !== '' 
-    ? url 
+  return url && typeof url === 'string' && url.trim() !== ''
+    ? url
     : CUISINE_PLACEHOLDERS.default
 }
 
@@ -39,19 +39,19 @@ const getPlaceholderImage = (cuisine?: string): string => {
   if (!cuisine) return CUISINE_PLACEHOLDERS.default
 
   const cuisineLower = cuisine.toLowerCase()
-  const matchedKey = Object.keys(CUISINE_PLACEHOLDERS).find(key => 
+  const matchedKey = Object.keys(CUISINE_PLACEHOLDERS).find((key) =>
     cuisineLower.includes(key)
   )
 
-  return matchedKey 
-    ? CUISINE_PLACEHOLDERS[matchedKey] 
+  return matchedKey
+    ? CUISINE_PLACEHOLDERS[matchedKey]
     : CUISINE_PLACEHOLDERS.default
 }
 
-export default function RestaurantCard({ 
-  restaurant, 
+export default function RestaurantCard({
+  restaurant,
   layout = 'grid',
-  variant = 'default'
+  variant = 'default',
 }: RestaurantCardProps) {
   const [imgSrc, setImgSrc] = useState<string>(CUISINE_PLACEHOLDERS.default)
   const [isLoading, setIsLoading] = useState(true)
@@ -69,7 +69,9 @@ export default function RestaurantCard({
         }
       } catch (error) {
         console.error('Error loading image:', error)
-        setImgSrc(CUISINE_PLACEHOLDERS.default)
+        setImgSrc(getPlaceholderImage(restaurant.cuisine))
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -78,44 +80,45 @@ export default function RestaurantCard({
 
   const handleImageError = () => {
     setImgSrc(getPlaceholderImage(restaurant.cuisine))
-    setIsLoading(false)
   }
 
-  const handleLoadComplete = () => {
-    setIsLoading(false)
-  }
-
-  // Variant styles
+  // Estilos por variante
   const variantStyles = {
-    default: 'bg-white',
-    featured: 'bg-primary/10 border-2 border-primary',
-    traditional: 'bg-gray-50 border border-gray-200'
+    default: 'bg-white border border-gray-200',
+    featured: 'bg-primary/10 border-2 border-primary shadow-md',
+    traditional: 'bg-gray-50 border border-gray-100',
   }
 
-  // Tag colors based on variant
+  // Colores de tags por variante
   const tagColors = {
     default: 'bg-green-100 text-green-800',
     featured: 'bg-white text-primary',
-    traditional: 'bg-gray-200 text-gray-800'
+    traditional: 'bg-gray-200 text-gray-800',
   }
 
   return (
-    <div className={`
-      rounded-xl overflow-hidden shadow hover:shadow-lg transition-all duration-300
-      ${layout === 'grid' ? '' : 'flex'}
-      ${variantStyles[variant]}
-      ${isLoading ? 'opacity-90' : 'opacity-100'}
-    `}>
-      <div className={`relative ${layout === 'grid' ? 'w-full h-48' : 'w-1/3 h-48'}`}>
-        {/* Loading skeleton */}
+    <div
+      className={`
+        rounded-xl overflow-hidden shadow hover:shadow-lg transition-all duration-300
+        ${layout === 'grid' ? '' : 'flex'}
+        ${variantStyles[variant]}
+        ${isLoading ? 'opacity-90' : 'opacity-100'}
+      `}
+    >
+      <div
+        className={`relative ${
+          layout === 'grid' ? 'w-full h-48' : 'w-1/3 h-48'
+        }`}
+      >
+        {/* Skeleton loader */}
         {isLoading && (
           <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-xl"></div>
         )}
 
-        {/* Main image */}
-        <Image 
+        {/* Imagen real */}
+        <Image
           src={imgSrc}
-          alt={restaurant.name || 'Restaurant'} 
+          alt={restaurant.name || 'Restaurant'}
           fill
           className={`object-cover transition-opacity duration-300 ${
             isLoading ? 'opacity-0' : 'opacity-100'
@@ -123,13 +126,12 @@ export default function RestaurantCard({
           priority={layout === 'grid'}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           onError={handleImageError}
-          onLoadingComplete={handleLoadComplete}
         />
-        
-        {/* Overlay for placeholders */}
+
+        {/* Overlay con nombre del restaurante */}
         {!restaurant.photoUploads?.[0]?.asset && !isLoading && (
-          <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-            <span className="text-white bg-black/50 px-3 py-1 rounded-lg text-sm">
+          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+            <span className="text-white bg-black/60 px-3 py-1 rounded-lg text-sm font-medium">
               {restaurant.name}
             </span>
           </div>
@@ -146,6 +148,7 @@ export default function RestaurantCard({
           {restaurant.cuisine} · {restaurant.priceRange}
         </p>
 
+        {/* Tags */}
         {restaurant.tags && restaurant.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
             {restaurant.tags.map((tag: string, index: number) => (
@@ -153,20 +156,21 @@ export default function RestaurantCard({
                 key={index}
                 className={`text-xs font-semibold px-2 py-1 rounded-full ${tagColors[variant]}`}
               >
-                {tag}
+                #{tag.replace(/\s+/g, '')}
               </span>
             ))}
           </div>
         )}
 
+        {/* Acciones */}
         <div className="mt-4 flex gap-4">
           {restaurant.instagramOrWebsite && (
             <Link
               href={
                 restaurant.instagramOrWebsite.startsWith('http')
                   ? restaurant.instagramOrWebsite
-                  : `https://${restaurant.instagramOrWebsite}`
-              } 
+                  : `https://${restaurant.instagramOrWebsite}` 
+              }
               target="_blank"
               rel="noopener noreferrer"
               className={`text-sm hover:underline ${

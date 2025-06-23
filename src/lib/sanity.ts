@@ -37,15 +37,28 @@ export const fetchRestaurants = async (): Promise<Restaurant[]> => {
       name,
       neighbourhood,
       streetAddress,
+      city,
       cuisine,
       priceRange,
+      summary,
       description,
-      googleMapsLink,
-      instagramOrWebsite,
+      website,
+      phone,
       tags,
-      photoUploads[]->{
+      mainImage {
         asset->
-      }
+      },
+      galleryImages[]{
+        asset->
+      },
+      Image_URL,
+      openingHours,
+      facebook,
+      instagram,
+      twitter,
+      youtube,
+      metaKeywords,
+      lgbtqFriendly
     }
   `)
 }

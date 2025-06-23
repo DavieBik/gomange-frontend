@@ -6,47 +6,97 @@
 
 @layer base {
   html {
+    @apply scroll-smooth;
     font-family: 'Poppins', system-ui, sans-serif;
-    scroll-behavior: smooth;
-    @apply text-gray-800;
   }
   
   body {
-    @apply bg-gray-50 antialiased;
+    @apply bg-white text-gray-800 antialiased;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl font-bold;
   }
   
-  h1, h2, h3, h4 {
-    @apply font-bold tracking-tight;
+  h2 {
+    @apply text-3xl md:text-4xl font-bold;
   }
   
+  h3 {
+    @apply text-2xl md:text-3xl font-bold;
+  }
+  
+  h4 {
+    @apply text-xl md:text-2xl font-bold;
+  }
+
   a {
     @apply transition-colors duration-200;
+  }
+
+  /* Custom selection color */
+  ::selection {
+    @apply bg-primary-500 text-white;
   }
 }
 
 @layer components {
+  .btn {
+    @apply inline-flex items-center justify-center font-medium rounded-full transition-all duration-300 ease-out;
+  }
+
+  .btn-md {
+    @apply px-6 py-3 text-base;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+  }
+
   .btn-primary {
-    @apply bg-primary hover:bg-primary-dark text-white font-medium py-3 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300;
+    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-4 focus:ring-primary-300;
   }
-  
-  .card {
-    @apply bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300;
+
+  .btn-secondary {
+    @apply bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-4 focus:ring-secondary-300;
   }
-  
+
+  .btn-outline {
+    @apply border border-primary-500 text-primary-500 hover:bg-primary-50;
+  }
+
+  .btn-disabled {
+    @apply bg-gray-200 text-gray-500 cursor-not-allowed;
+  }
+
+.card {
+  @apply bg-white rounded-xl overflow-hidden shadow-card transition-all duration-300 hover:shadow-card-hover;
+}
+
+.card-featured {
+  @apply bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-lg hover:shadow-xl rounded-xl overflow-hidden transform hover:scale-105;
+}
   .section {
-    @apply py-12 md:py-20;
+    @apply py-12 md:py-20 lg:py-24;
   }
-  
+
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
-}
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+  .input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
 
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out forwards;
+  .select {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .keen-slider__slide:not(:first-child) {
+  margin-left: 1rem;
+}
+  /* Custom animations */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
 }

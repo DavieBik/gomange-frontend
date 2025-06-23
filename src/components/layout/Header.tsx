@@ -29,7 +29,7 @@ export default function Header() {
   ]
 
   return (
-    <header className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-2' : 'bg-transparent py-4'}`}>
+<header className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100 py-2' : 'bg-white py-4'}`}>
       <div className="mx-auto px-4 sm:px-6 w-full">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}

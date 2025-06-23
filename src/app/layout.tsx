@@ -1,5 +1,6 @@
 import '../../styles/global.css'
 import type { Metadata } from 'next'
+import 'keen-slider/keen-slider.min.css'
 
 export const metadata: Metadata = {
   title: 'GoMange CMS',

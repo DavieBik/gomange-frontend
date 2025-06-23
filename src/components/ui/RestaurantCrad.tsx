@@ -4,48 +4,15 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { urlFor } from '@/lib/sanity'
-import type { Sanity } from '../../types/sanity'
+import type { Restaurant } from '@/types/sanity'
+import { getPlaceholderImage } from '@/lib/utils'
 
 type RestaurantCardVariant = 'default' | 'featured' | 'traditional'
 
 interface RestaurantCardProps {
-  restaurant: Sanity.Restaurant
+  restaurant: Restaurant
   layout?: 'grid' | 'list'
   variant?: RestaurantCardVariant
-}
-
-const CUISINE_PLACEHOLDERS: Record<string, string> = {
-  italian: '/placeholder/italian.jpg',
-  mexican: '/placeholder/mexican.jpg',
-  asian: '/placeholder/asian.jpg',
-  sushi: '/placeholder/asian.jpg',
-  chinese: '/placeholder/asian.jpg',
-  burger: '/placeholder/burger.jpg',
-  american: '/placeholder/burger.jpg',
-  vegetarian: '/placeholder/vegetarian.jpg',
-  vegan: '/placeholder/vegetarian.jpg',
-  seafood: '/placeholder/seafood.jpg',
-  fish: '/placeholder/seafood.jpg',
-  default: '/placeholder/default.jpg',
-}
-
-const getValidImageUrl = (url: string | null | undefined): string => {
-  return url && typeof url === 'string' && url.trim() !== ''
-    ? url
-    : CUISINE_PLACEHOLDERS.default
-}
-
-const getPlaceholderImage = (cuisine?: string): string => {
-  if (!cuisine) return CUISINE_PLACEHOLDERS.default
-
-  const cuisineLower = cuisine.toLowerCase()
-  const matchedKey = Object.keys(CUISINE_PLACEHOLDERS).find((key) =>
-    cuisineLower.includes(key)
-  )
-
-  return matchedKey
-    ? CUISINE_PLACEHOLDERS[matchedKey]
-    : CUISINE_PLACEHOLDERS.default
 }
 
 export default function RestaurantCard({
@@ -53,20 +20,26 @@ export default function RestaurantCard({
   layout = 'grid',
   variant = 'default',
 }: RestaurantCardProps) {
-  const [imgSrc, setImgSrc] = useState<string>(CUISINE_PLACEHOLDERS.default)
+  const [imgSrc, setImgSrc] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
 
+  // Cargar imagen principal o placeholder
   useEffect(() => {
     const initializeImage = async () => {
       try {
-        if (restaurant.photoUploads?.[0]?.asset) {
-          const url = await urlFor(restaurant.photoUploads[0].asset)
-            .width(800)
-            .url()
-          setImgSrc(getValidImageUrl(url))
+        let newImgSrc = ''
+
+        if (restaurant.mainImage?.asset) {
+          newImgSrc = await urlFor(restaurant.mainImage.asset).width(800).url()
+        } else if (restaurant.Image_URL) {
+          newImgSrc = restaurant.Image_URL
+        } else if (restaurant.cuisine) {
+          newImgSrc = getPlaceholderImage(restaurant.cuisine)
         } else {
-          setImgSrc(getPlaceholderImage(restaurant.cuisine))
+          newImgSrc = '/placeholder/default.jpg'
         }
+
+        setImgSrc(newImgSrc)
       } catch (error) {
         console.error('Error loading image:', error)
         setImgSrc(getPlaceholderImage(restaurant.cuisine))
@@ -76,85 +49,119 @@ export default function RestaurantCard({
     }
 
     initializeImage()
-  }, [restaurant.photoUploads, restaurant.cuisine])
+  }, [restaurant._id])
 
   const handleImageError = () => {
     setImgSrc(getPlaceholderImage(restaurant.cuisine))
   }
 
-  // Estilos por variante
+  // Estilos dinámicos por variante
   const variantStyles = {
-    default: 'bg-white border border-gray-200',
-    featured: 'bg-primary/10 border-2 border-primary shadow-md',
-    traditional: 'bg-gray-50 border border-gray-100',
+    default:
+      'bg-white rounded-xl shadow-card hover:shadow-card-hover overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1',
+    featured:
+      'bg-gradient-to-br from-primary-600 to-primary-800 text-white shadow-xl rounded-xl overflow-hidden flex flex-col h-full relative group',
+    traditional:
+      'bg-secondary-600 text-white shadow-md hover:shadow-lg rounded-xl overflow-hidden flex flex-col h-full',
   }
 
-  // Colores de tags por variante
+  const textClass = {
+    default: 'text-gray-600',
+    featured: 'text-white',
+    traditional: 'text-white',
+  }[variant]
+
   const tagColors = {
-    default: 'bg-green-100 text-green-800',
-    featured: 'bg-white text-primary',
-    traditional: 'bg-gray-200 text-gray-800',
+    default: 'bg-primary-100 text-primary-800',
+    featured: 'bg-white text-primary-700',
+    traditional: 'bg-secondary-500 text-white',
   }
 
   return (
-    <div
-      className={`
-        rounded-xl overflow-hidden shadow hover:shadow-lg transition-all duration-300
-        ${layout === 'grid' ? '' : 'flex'}
-        ${variantStyles[variant]}
-        ${isLoading ? 'opacity-90' : 'opacity-100'}
-      `}
-    >
+    <div className={variantStyles[variant]}>
+      {/* Imagen */}
       <div
-        className={`relative ${
-          layout === 'grid' ? 'w-full h-48' : 'w-1/3 h-48'
-        }`}
+        className={`relative ${layout === 'grid' ? 'aspect-[4/3]' : 'aspect-[16/9] md:aspect-[4/3]'}`}
       >
-        {/* Skeleton loader */}
         {isLoading && (
-          <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-xl"></div>
+          <div className="absolute inset-0 bg-gray-200 animate-pulse" />
         )}
 
-        {/* Imagen real */}
-        <Image
-          src={imgSrc}
-          alt={restaurant.name || 'Restaurant'}
-          fill
-          className={`object-cover transition-opacity duration-300 ${
-            isLoading ? 'opacity-0' : 'opacity-100'
-          }`}
-          priority={layout === 'grid'}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          onError={handleImageError}
-        />
+        {imgSrc && (
+          <Image
+            src={imgSrc}
+            alt={restaurant.name || 'Restaurant image'}
+            fill
+            className={`object-cover transition-opacity duration-300 ${
+              !isLoading ? 'opacity-100' : 'opacity-0'
+            }`}
+            onError={handleImageError}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        )}
 
-        {/* Overlay con nombre del restaurante */}
-        {!restaurant.photoUploads?.[0]?.asset && !isLoading && (
-          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-            <span className="text-white bg-black/60 px-3 py-1 rounded-lg text-sm font-medium">
+        {variant === 'featured' && (
+          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
+        )}
+
+        {!restaurant.mainImage?.asset && !restaurant.Image_URL && !isLoading && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+            <span className="text-white font-semibold px-3 py-1.5 rounded-md text-sm">
               {restaurant.name}
             </span>
           </div>
         )}
       </div>
 
-      <div className={`p-4 ${layout === 'grid' ? '' : 'flex-1'}`}>
-        <h3 className="font-semibold text-lg">{restaurant.name}</h3>
-        <p className="text-sm text-gray-500 mt-1">
-          {restaurant.neighbourhood}
-          {restaurant.streetAddress ? `, ${restaurant.streetAddress}` : ''}
-        </p>
-        <p className="text-sm text-gray-600 mt-2">
-          {restaurant.cuisine} · {restaurant.priceRange}
-        </p>
+      {/* Contenido */}
+      <div className="p-4 flex-1 flex flex-col">
+        {/* Título y ubicación */}
+        <h3
+          className={`font-bold text-lg ${
+            variant === 'featured' ? 'text-white' : 'text-gray-900'
+          } mb-1`}
+        >
+          {restaurant.name}
+        </h3>
+
+        <div className="flex items-center gap-2 mb-2">
+          <p
+            className={`text-sm ${
+              variant === 'featured' ? 'text-primary-100' : 'text-gray-600'
+            }`}
+          >
+            {restaurant.neighbourhood}
+          </p>
+          {restaurant.priceRange && (
+            <span
+              className={`text-xs px-1.5 py-0.5 rounded ${
+                variant === 'featured'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-gray-100 text-gray-700'
+              }`}
+            >
+              {restaurant.priceRange}
+            </span>
+          )}
+        </div>
+
+        {restaurant.cuisine && (
+          <p
+            className={`text-sm mb-4 ${
+              variant === 'featured' ? 'text-primary-100' : 'text-gray-500'
+            }`}
+          >
+            {restaurant.cuisine}
+          </p>
+        )}
 
         {/* Tags */}
         {restaurant.tags && restaurant.tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-4">
             {restaurant.tags.map((tag: string, index: number) => (
               <span
                 key={index}
-                className={`text-xs font-semibold px-2 py-1 rounded-full ${tagColors[variant]}`}
+                className={`text-xs font-medium px-2.5 py-1 rounded-full ${tagColors[variant]}`}
               >
                 #{tag.replace(/\s+/g, '')}
               </span>
@@ -162,34 +169,30 @@ export default function RestaurantCard({
           </div>
         )}
 
-        {/* Acciones */}
-        <div className="mt-4 flex gap-4">
-          {restaurant.instagramOrWebsite && (
+        {/* Badges */}
+        <div className="mt-auto flex flex-wrap gap-2">
+          {restaurant.lgbtqFriendly && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-secondary-100 text-secondary-800 text-xs font-medium">
+              🌈 LGBTQ+ Friendly
+            </span>
+          )}
+
+          {restaurant.website && (
             <Link
               href={
-                restaurant.instagramOrWebsite.startsWith('http')
-                  ? restaurant.instagramOrWebsite
-                  : `https://${restaurant.instagramOrWebsite}` 
+                restaurant.website.startsWith('http')
+                  ? restaurant.website
+                  : `https://${restaurant.website}` 
               }
               target="_blank"
               rel="noopener noreferrer"
-              className={`text-sm hover:underline ${
-                variant === 'featured' ? 'text-primary' : 'text-blue-600'
+              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                variant === 'featured'
+                  ? 'bg-white/20 text-white hover:bg-white/30'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Website
-            </Link>
-          )}
-          {restaurant.googleMapsLink && (
-            <Link
-              href={restaurant.googleMapsLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`text-sm hover:underline ${
-                variant === 'featured' ? 'text-primary' : 'text-blue-600'
-              }`}
-            >
-              Maps
+              Visit Website
             </Link>
           )}
         </div>

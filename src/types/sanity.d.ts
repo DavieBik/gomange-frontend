@@ -23,25 +23,43 @@ export namespace Sanity {
     _type: 'block'
   }
 
-  // Document Types
-  interface Restaurant {
-    _id: string
-    _createdAt: string
-    _updatedAt: string
-    _rev: string
-    _type: 'restaurant'
-    name: string
-    slug: Slug
-    neighbourhood?: string
-    streetAddress?: string
-    cuisine?: string
-    priceRange?: string
-    description?: string
-    googleMapsLink?: string
-    instagramOrWebsite?: string
-    tags?: string[]
-    photoUploads?: Array<{ _key: string; asset: Reference }>
+
+ interface Restaurant {
+  _id: string
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  _type: 'restaurant'
+  name: string
+  slug: Slug
+  neighbourhood?: string
+  streetAddress?: string
+  city?: string
+  cuisine?: string
+  priceRange?: string
+  summary?: string
+  description?: string
+  website?: string
+  phone?: string
+  tags?: string[]
+  Image_URL?: string
+  galleryImages?: Array<Image>
+  openingHours?: {
+    monday?: string
+    tuesday?: string
+    wednesday?: string
+    thursday?: string
+    friday?: string
+    saturday?: string
+    sunday?: string
   }
+  facebook?: string
+  instagram?: string
+  twitter?: string
+  youtube?: string
+  metaKeywords?: string[]
+  lgbtqFriendly: boolean
+}
 
   interface Collection {
     _id: string

@@ -25,27 +25,21 @@ export default function TabButtons({
   activeTabClassName = '',
 }: TabButtonsProps) {
   return (
-    <div className={`flex items-center gap-1 p-1 bg-gray-100 rounded-xl ${className}`}>
+    <div className={`flex items-center gap-3 p-3 bg-white rounded-xl shadow-md border border-gray-200 ${className}`}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => tab.variant !== 'disabled' && onChange(tab.id)}
           disabled={tab.variant === 'disabled'}
           className={`
-            relative flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-300
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500
+            flex-1 text-sm
             ${tabClassName}
             ${
               activeId === tab.id 
-                ? `text-white bg-primary-500 shadow-md ${activeTabClassName}`
+                ? `btn-tab-active ${activeTabClassName}` // Botón activo con borde
                 : tab.variant === 'disabled'
-                  ? 'text-gray-400 cursor-not-allowed'
-                  : 'text-gray-700 hover:text-primary-600 hover:bg-primary-50'
-            }
-            ${
-              activeId === tab.id 
-                ? 'after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-4 after:h-1 after:bg-white after:rounded-full'
-                : ''
+                  ? 'btn-disabled bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-300 px-6 py-3 rounded-lg'
+                  : 'btn-tab-inactive' // Botón inactivo con borde
             }
           `}
         >

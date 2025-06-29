@@ -1,94 +1,59 @@
-// components/ui/Carousel.tsx
 'use client'
 
-import { useKeenSlider } from 'keen-slider/react'
-import React, { useEffect, useRef } from 'react'
-import 'keen-slider/keen-slider.min.css'
+import React, { useRef } from 'react'
 
 interface CarouselProps {
   children: React.ReactNode
-  autoplay?: boolean
-  delay?: number
+  className?: string
 }
 
-export default function Carousel({
-  children,
-  autoplay = true,
-  delay = 5000,
-}: CarouselProps) {
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+export default function Carousel({ children, className = '' }: CarouselProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  const [sliderRef, slider] = useKeenSlider<HTMLDivElement>({
-    loop: true,
-    mode: 'snap',
-    slides: {
-      perView: 1.2,
-      spacing: 16,
-    },
-    breakpoints: {
-      '(min-width: 640px)': {
-        slides: { perView: 1.5, spacing: 20 },
-      },
-      '(min-width: 768px)': {
-        slides: { perView: 2.2, spacing: 24 },
-      },
-      '(min-width: 1024px)': {
-        slides: { perView: 3, spacing: 32 },
-      },
-      '(min-width: 1280px)': {
-        slides: { perView: 3.5, spacing: 40 },
-      },
-    },
-    created: () => {
-      if (autoplay) startAutoplay()
-    },
-    updated: () => {
-      if (autoplay) resetAutoplay()
-    },
-    animationEnded: () => {
-      if (autoplay) {
-        const currentIndex = slider.current?.track.details.rel || 0
-        const nextIndex = currentIndex + 1
-        slider.current?.moveToIdx(nextIndex)
-        resetAutoplay()
-      }
-    },
-  })
-
-  const startAutoplay = () => {
-    if (!intervalRef.current && slider.current) {
-      intervalRef.current = setInterval(() => {
-        const currentIndex = slider.current?.track.details.rel || 0
-        const nextIndex = currentIndex + 1
-        slider.current?.moveToIdx(nextIndex)
-      }, delay)
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const width = scrollRef.current.offsetWidth
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -width : width,
+        behavior: 'smooth',
+      })
     }
   }
-
-  const resetAutoplay = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current)
-    intervalRef.current = setInterval(() => {
-      const currentIndex = slider.current?.track.details.rel || 0
-      const nextIndex = currentIndex + 1
-      slider.current?.moveToIdx(nextIndex)
-    }, delay)
-  }
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
-  }, [])
 
   return (
-    <div className="relative w-full overflow-hidden">
-      <div ref={sliderRef} className="keen-slider">
-        {children}
+    <div className={`relative w-full ${className}`}>
+      {/* Flechas solo en desktop */}
+      <button
+        type="button"
+        onClick={() => scroll('left')}
+        className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 items-center justify-center shadow-md"
+        aria-label="Scroll left"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <div
+        ref={scrollRef}
+        className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 px-2"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        {React.Children.map(children, (child, idx) => (
+          <div className="snap-center shrink-0 w-full md:w-1/2 lg:w-1/4 max-w-xs md:max-w-none" key={idx}>
+            {child}
+          </div>
+        ))}
       </div>
-
-      {/* Gradientes laterales para efecto visual */}
-      <div className="absolute inset-y-0 left-0 w-12 md:w-20 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-      <div className="absolute inset-y-0 right-0 w-12 md:w-20 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+      <button
+        type="button"
+        onClick={() => scroll('right')}
+        className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 items-center justify-center shadow-md"
+        aria-label="Scroll right"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
     </div>
   )
 }

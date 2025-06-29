@@ -17,51 +17,91 @@ export default function HeroSection() {
   }
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 30, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: {
         type: 'spring',
         stiffness: 100,
+        damping: 12,
+        duration: 0.6
+      },
+    },
+  }
+
+  const titleVariants = {
+    hidden: { y: 50, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 80,
         damping: 10,
-        duration: 0.5
+        duration: 0.8
       },
     },
   }
 
   return (
-    <section className="relative overflow-hidden  bg-primary-700  text-white py-24 md:py-32">
-
+    <section className="relative overflow-hidden bg-primary text-white py-24 md:py-32">
+      {/* Elementos animados de fondo simples */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-transparent via-secondary/5 to-transparent"
+          animate={{ 
+            opacity: [0.3, 0.6, 0.3]
+          }}
+          transition={{ 
+            duration: 4, 
+            repeat: Infinity, 
+            ease: "easeInOut"
+          }}
+        />
+      </div>
 
     <motion.div
-  className="container mx-auto px-4 text-center"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
+      className="container mx-auto px-4 text-center relative z-10"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
         {/* Badge animado */}
         <motion.span
           variants={itemVariants}
-          className="inline-block px-4 py-1 mb-6 text-sm font-semibold text-primary-700 bg-white rounded-full shadow-md"
+          className="inline-block px-6 py-2 mb-8 text-base font-bold text-primary bg-white rounded-full shadow-lg border-2 border-secondary"
+          whileHover={{ scale: 1.05, y: -2 }}
         >
-          Your Next Meal Starts Here
+        Premium Dining Experiences
         </motion.span>
 
         {/* Título principal */}
         <motion.h1
-          className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6"
-          variants={itemVariants}
+          className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 text-white"
+          variants={titleVariants}
         >
-          Welcome to <span className="text-secondary-400">Go Mange</span>
+          Taste the{' '}
+          <motion.span 
+            className="text-secondary font-lobster font-light text-6xl md:text-7xl lg:text-8xl inline-block"
+            whileHover={{ 
+              scale: 1.05,
+              rotate: [-1, 1, -1, 0],
+              transition: { duration: 0.3 }
+            }}
+          >
+            GoMange
+          </motion.span>
+          <br />
+          <span className="text-4xl md:text-5xl lg:text-6xl">Experience</span>
         </motion.h1>
 
         {/* Subtítulo */}
         <motion.p
-          className="max-w-2xl mx-auto text-lg md:text-xl text-white/90 mb-10 leading-relaxed"
+          className="max-w-3xl mx-auto text-xl md:text-2xl text-white font-medium mb-10 leading-relaxed"
           variants={itemVariants}
         >
-          Discover the best restaurants in your city. From cozy local spots to gourmet experiences — we've got you covered.
+          Explore extraordinary dining experiences. From hidden gems to award-winning restaurants — your perfect meal awaits.
         </motion.p>
 
         {/* Botones */}
@@ -69,18 +109,22 @@ export default function HeroSection() {
           className="flex flex-col sm:flex-row justify-center gap-4"
           variants={itemVariants}
         >
-          <Link
+          <motion.a
             href="#restaurant-list"
-            className="btn btn-lg btn-primary bg-white text-primary-700 hover:bg-gray-100 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
+            className="px-6 py-3 bg-white text-primary font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
           >
             Find Restaurants
-          </Link>
-          <Link
+          </motion.a>
+          <motion.a
             href="/about"
-            className="btn btn-lg btn-outline border-white text-white hover:bg-white/10 backdrop-blur-sm font-medium border-opacity-30 transition-colors"
+            className="px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-primary transition-colors"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
           >
             How It Works
-          </Link>
+          </motion.a>
         </motion.div>
       </motion.div>
     </section>

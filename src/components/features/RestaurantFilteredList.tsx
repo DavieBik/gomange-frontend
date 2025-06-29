@@ -25,10 +25,29 @@ export default function RestaurantFilteredList({ restaurants }: { restaurants: R
   const [priceRange, setPriceRange] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
 
+  // Función para mapear precios existentes a las nuevas categorías
+  const mapPriceRange = (price: string | undefined): string => {
+    if (!price) return 'Standard pricing'
+    
+    const lowerPrice = price.toLowerCase()
+    if (lowerPrice.includes('$') && !lowerPrice.includes('$$')) return 'Affordable meals'
+    if (lowerPrice.includes('$$$$') || lowerPrice.includes('expensive') || lowerPrice.includes('upscale')) return 'Upscale dining'
+    if (lowerPrice.includes('$$$') || lowerPrice.includes('moderate')) return 'Standard pricing'
+    if (lowerPrice.includes('varied') || lowerPrice.includes('range')) return 'Wide price range'
+    
+    return 'Standard pricing' // default
+  }
+
   // Extraer opciones únicas con tipado correcto
   const locations = Array.from(new Set(restaurants.map(r => r.neighbourhood).filter((n): n is string => !!n)))
   const cuisines = Array.from(new Set(restaurants.map(r => r.cuisine).filter((c): c is string => !!c)))
-  const priceRanges = Array.from(new Set(restaurants.map(r => r.priceRange).filter((p): p is string => !!p)))
+  // Categorías de precio fijas
+  const priceRanges = [
+    'Affordable meals',
+    'Standard pricing', 
+    'Upscale dining',
+    'Wide price range'
+  ]
   const allTags = Array.from(new Set(restaurants.flatMap(r => r.tags || []).filter((t): t is string => !!t)))
 
   // Filtrado
@@ -40,7 +59,7 @@ export default function RestaurantFilteredList({ restaurants }: { restaurants: R
     const matchesCuisine = cuisine === '' || 
       r.cuisine?.toLowerCase().includes(cuisine.toLowerCase())
     const matchesPrice = priceRange === '' || 
-      r.priceRange === priceRange
+      mapPriceRange(r.priceRange) === priceRange
     const matchesTag = selectedTag === '' || 
       (r.tags && r.tags.includes(selectedTag))
 
@@ -67,13 +86,13 @@ export default function RestaurantFilteredList({ restaurants }: { restaurants: R
           </div>
           <input
             type="text"
-            placeholder="Search by restaurant name..."
+            placeholder="Search restaurants by name..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value)
               setCurrentPage(1)
             }}
-            className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent transition-shadow"
+            className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow placeholder-gray-600 font-medium text-gray-900"
           />
         </div>
 
@@ -85,9 +104,9 @@ export default function RestaurantFilteredList({ restaurants }: { restaurants: R
               setLocation(e.target.value)
               setCurrentPage(1)
             }}
-            className="p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent transition-shadow"
+            className="p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow font-medium text-gray-900"
           >
-            <option value="">All Locations</option>
+            <option value="">📍 All Locations</option>
             {locations.map(loc => (
               <option key={loc} value={loc}>{loc}</option>
             ))}
@@ -99,9 +118,9 @@ export default function RestaurantFilteredList({ restaurants }: { restaurants: R
               setCuisine(e.target.value)
               setCurrentPage(1)
             }}
-            className="p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent transition-shadow"
+            className="p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow font-medium text-gray-900"
           >
-            <option value="">All Cuisines</option>
+            <option value="">🍽️ All Cuisines</option>
             {cuisines.map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -113,9 +132,9 @@ export default function RestaurantFilteredList({ restaurants }: { restaurants: R
               setPriceRange(e.target.value)
               setCurrentPage(1)
             }}
-            className="p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent transition-shadow"
+            className="p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow font-medium text-gray-900"
           >
-            <option value="">All Price Ranges</option>
+            <option value="">💰 All Price Ranges</option>
             {priceRanges.map(p => (
               <option key={p} value={p}>{p}</option>
             ))}
@@ -127,9 +146,9 @@ export default function RestaurantFilteredList({ restaurants }: { restaurants: R
               setSelectedTag(e.target.value)
               setCurrentPage(1)
             }}
-            className="p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent transition-shadow"
+            className="p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow font-medium text-gray-900"
           >
-            <option value="">All Tags</option>
+            <option value="">🏷️ All Tags</option>
             {allTags.map(tag => (
               <option key={tag} value={tag}>{tag}</option>
             ))}
@@ -164,8 +183,9 @@ export default function RestaurantFilteredList({ restaurants }: { restaurants: R
         </>
       ) : (
         <div className="text-center py-16 bg-gray-50 rounded-xl shadow-sm">
-          <h3 className="text-xl font-semibold text-gray-800">No restaurants found</h3>
-          <p className="mt-2 text-gray-500">Try adjusting your search or filter criteria</p>
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">No Restaurants Found</h3>
+          <p className="text-lg font-medium text-gray-700 mb-6">Try adjusting your search or filter criteria</p>
           <button
             onClick={() => {
               setSearchTerm('')
@@ -175,19 +195,19 @@ export default function RestaurantFilteredList({ restaurants }: { restaurants: R
               setSelectedTag('')
               setCurrentPage(1)
             }}
-            className="mt-4 px-4 py-2 bg-secondary-500 text-white rounded-lg hover:bg-secondary-600 transition-colors"
+            className="px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-700 transition-colors shadow-md hover:shadow-lg"
           >
-            Clear filters
+            Clear All Filters
           </button>
         </div>
       )}
 
       {/* Contador de resultados */}
-      <div className="text-sm text-gray-500 text-center mt-4">
-        Showing <span className="font-medium">{currentRestaurants.length}</span> of{' '}
-        <span className="font-medium">{filteredRestaurants.length}</span> results
+      <div className="text-base font-semibold text-gray-800 text-center mt-4 bg-white rounded-lg py-3 shadow-sm">
+        Showing <span className="font-bold text-primary">{currentRestaurants.length}</span> of{' '}
+        <span className="font-bold text-primary">{filteredRestaurants.length}</span> restaurants
         {filteredRestaurants.length !== restaurants.length && (
-          <span> (filtered from <span className="font-medium">{restaurants.length}</span> total)</span>
+          <span className="text-gray-600"> (filtered from <span className="font-bold text-gray-900">{restaurants.length}</span> total)</span>
         )}
       </div>
     </div>

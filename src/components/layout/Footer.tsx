@@ -13,15 +13,15 @@ export default function Footer() {
           <div className="md:col-span-2">
             <div className="flex items-center mb-6">
               <Image
-                src="/images/logo-white.png"
+                src="/images/logo-1-black.png"
                 alt="GoMange Logo"
                 width={180}
                 height={60}
                 className="h-auto w-auto"
               />
             </div>
-            <p className="text-gray-300 mb-6 max-w-md">
-              Discover the best restaurants and curated collections in your city — all in one place.
+            <p className="text-gray-200 mb-6 max-w-md font-medium text-lg">
+              Find amazing restaurants and curated dining experiences in your city — all in one place.
             </p>
 
             {/* Redes sociales */}
@@ -47,20 +47,20 @@ export default function Footer() {
 
             {/* Newsletter (opcional) */}
             <div className="mt-6">
-              <h4 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                Subscribe to our newsletter
+              <h4 className="text-base font-bold text-white uppercase tracking-wider mb-3">
+                Stay Updated
               </h4>
               <form className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="email"
-                  placeholder="Your email"
-                  className="px-4 py-2 rounded-lg bg-primary-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-secondary text-white placeholder-gray-500"
+                  placeholder="Enter your email..."
+                  className="px-4 py-3 rounded-lg bg-primary-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent text-white placeholder-gray-400 font-medium"
                 />
                 <button
                   type="submit"
-                  className="btn btn-primary bg-secondary hover:bg-secondary-600 text-white px-4 py-2 rounded-lg whitespace-nowrap"
+                  className="bg-secondary hover:bg-secondary-600 text-white font-bold px-6 py-3 rounded-lg whitespace-nowrap transition-colors shadow-md hover:shadow-lg"
                 >
-                  Get Updates
+                  Subscribe
                 </button>
               </form>
             </div>
@@ -68,8 +68,8 @@ export default function Footer() {
 
           {/* Links rápidos */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
+            <h3 className="text-xl font-bold mb-6 text-white">Quick Links</h3>
+            <ul className="space-y-3">
               {[
                 { label: 'Home', href: '/' },
                 { label: 'Restaurants', href: '/restaurants' },
@@ -79,7 +79,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-gray-300 hover:text-white transition-colors font-medium text-base hover:translate-x-1 inline-block"
                   >
                     {link.label}
                   </Link>
@@ -90,13 +90,13 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Legal</h3>
-            <ul className="space-y-2">
+            <h3 className="text-xl font-bold mb-6 text-white">Legal</h3>
+            <ul className="space-y-3">
               {['Terms of Service', 'Privacy Policy', 'Cookie Policy', 'Accessibility'].map((item) => (
                 <li key={item}>
                   <Link
                     href="#"
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-gray-300 hover:text-white transition-colors font-medium text-base hover:translate-x-1 inline-block"
                   >
                     {item}
                   </Link>
@@ -107,22 +107,22 @@ export default function Footer() {
         </div>
 
         {/* Información adicional */}
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm text-center md:text-left mb-4 md:mb-0">
-            © {new Date().getFullYear()} GoMange. All rights reserved.
+        <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-gray-300 text-base font-medium text-center md:text-left mb-4 md:mb-0">
+            © {new Date().getFullYear()} <span className="font-bold text-white">GoMange</span>. All rights reserved.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-400">
-            <Link href="/terms" className="hover:text-white transition-colors">
+          <div className="flex flex-wrap justify-center gap-6 text-base text-gray-300">
+            <Link href="/terms" className="hover:text-white transition-colors font-medium hover:underline">
               Terms & Conditions
             </Link>
-            <Link href="/privacy" className="hover:text-white transition-colors">
+            <Link href="/privacy" className="hover:text-white transition-colors font-medium hover:underline">
               Privacy Policy
             </Link>
-            <Link href="/cookies" className="hover:text-white transition-colors">
+            <Link href="/cookies" className="hover:text-white transition-colors font-medium hover:underline">
               Cookie Preferences
             </Link>
-            <Link href="/support" className="hover:text-white transition-colors">
+            <Link href="/support" className="hover:text-white transition-colors font-medium hover:underline">
               Support
             </Link>
           </div>

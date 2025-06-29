@@ -23,7 +23,7 @@ export default function Header() {
 
   const navLinks: NavLink[] = [
     { name: 'Home', href: '/' },
-    { name: 'Restaurants', href: '/restaurants' },
+    { name: 'About us', href: '/about-us' },
     { name: 'Collections', href: '/collections' },
     { name: 'Contact', href: '/contact' },
   ]
@@ -35,10 +35,10 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center h-full">
             <Image
-              src="/images/logo.png"
+              src="/images/logo-2.png"
               alt="GoMange Logo"
-              height={180}
-              width={150}
+              height={80}
+              width={120}
               priority
               className="object-contain"
             />

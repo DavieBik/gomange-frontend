@@ -63,18 +63,50 @@ export const fetchRestaurants = async (): Promise<Restaurant[]> => {
   `)
 }
 
+export const fetchRestaurantById = async (id: string): Promise<Restaurant | null> => {
+  return await client.fetch(`
+    *[_type == "restaurant" && _id == $id][0] {
+      _id,
+      name,
+      neighbourhood,
+      streetAddress,
+      city,
+      cuisine,
+      priceRange,
+      summary,
+      description,
+      website,
+      phone,
+      tags,
+      mainImage {
+        asset->
+      },
+      galleryImages[]{
+        asset->
+      },
+      Image_URL,
+      openingHours,
+      facebook,
+      instagram,
+      twitter,
+      youtube,
+      metaKeywords,
+      lgbtqFriendly
+    }
+  `, { id })
+}
+
 export const fetchCollections = async (): Promise<Collection[]> => {
   return await client.fetch(`
-    *[_type == "collection"] {
+    *[_type == "collection"] | order(_createdAt desc) {
       _id,
       title,
       description,
-      slug {
-        current
-      },
+      slug,
       coverImage {
         asset->
       },
+      "restaurantCount": count(restaurants),
       restaurants[]->{
         _id,
         name

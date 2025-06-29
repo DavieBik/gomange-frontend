@@ -69,6 +69,11 @@ export namespace Sanity {
     slug: Slug
     coverImage?: Image
     restaurants?: Array<Reference & { _key: string }>
+    restaurantCount?: number
+  }
+
+  interface CollectionWithRestaurants extends Omit<Collection, 'restaurants'> {
+    restaurants: Restaurant[]
   }
 
   interface Article {
@@ -83,12 +88,21 @@ export namespace Sanity {
   }
 }
 
+// Type aliases for easier imports
+type SanityImage = Sanity.Image
+type SanityRestaurant = Sanity.Restaurant
+type SanityCollection = Sanity.Collection
+type SanityCollectionWithRestaurants = Sanity.CollectionWithRestaurants
+type SanityArticle = Sanity.Article
+type SanityReference = Sanity.Reference
+type SanitySlug = Sanity.Slug
 
 export type {
   Sanity as SanityNamespace,
   SanityImage as Image,
   SanityRestaurant as Restaurant,
   SanityCollection as Collection,
+  SanityCollectionWithRestaurants as CollectionWithRestaurants,
   SanityArticle as Article,
   SanityReference as Reference,
   SanitySlug as Slug,

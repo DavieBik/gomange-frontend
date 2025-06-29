@@ -13,8 +13,7 @@ export default async function HomePage() {
 
   return (
     <div className="relative">
-      <Header /> 
-      
+
       <div className="h-24"></div>
       {/* Hero Section */}
       <HeroSection />
@@ -57,7 +56,7 @@ export default async function HomePage() {
       {/* Collections Preview Section */}
       <CollectionsPreview collections={collections} />
 
-      <Footer />
+
     </div>
   )
 }

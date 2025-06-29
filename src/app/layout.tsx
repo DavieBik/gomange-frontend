@@ -1,6 +1,8 @@
 import '../../styles/global.css'
 import type { Metadata } from 'next'
 import 'keen-slider/keen-slider.min.css'
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
 
 export const metadata: Metadata = {
   title: 'GoMange CMS',
@@ -21,7 +23,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-white">
+        <Header />
         {children}
+        <Footer />
       </body>
     </html>
   )

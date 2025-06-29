@@ -22,10 +22,8 @@ export default function HeroSection() {
       y: 0,
       opacity: 1,
       transition: {
-        type: 'spring',
         stiffness: 100,
-        damping: 12,
-        duration: 0.6
+        damping: 12
       },
     },
   }
@@ -36,10 +34,8 @@ export default function HeroSection() {
       y: 0,
       opacity: 1,
       transition: {
-        type: 'spring',
         stiffness: 80,
-        damping: 10,
-        duration: 0.8
+        damping: 10
       },
     },
   }

@@ -90,7 +90,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
       opacity: 1,
       transition: {
         duration: 0.6,
-        ease: 'easeOut',
+        ease: "easeOut" as const,
       },
     },
   }
@@ -188,7 +188,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                 )}
 
                 {/* Action buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center md:justify-start mt-8">
                   {restaurant.website && (
                     <a
                       href={restaurant.website.startsWith('http') ? restaurant.website : `https://${restaurant.website}`}

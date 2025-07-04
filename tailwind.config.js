@@ -9,17 +9,17 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#6B4226', 
-          50: '#F7F3F0',
-          100: '#EDE4DC',
-          200: '#D4C0B0',
-          300: '#B99B84',
-          400: '#9E7658',
-          500: '#83512C',
-          600: '#6B4226', 
-          700: '#4A2C1A', 
-          800: '#3A2315',
-          900: '#2A1A0F',
+          DEFAULT: '#455D58', // Verde grisáceo elegante
+          50: '#F4F7F6',
+          100: '#E3EAE7',
+          200: '#C1D3CD',
+          300: '#9EBBB3',
+          400: '#7CA399',
+          500: '#5A8B7F',
+          600: '#455D58', // Base
+          700: '#344843',
+          800: '#22332D',
+          900: '#101D18',
         },
         secondary: {
           DEFAULT: '#F5A623',
@@ -34,8 +34,21 @@ module.exports = {
           800: '#6B450D',
           900: '#382207',
         },
-        dark: '#1A1A1A',
-        light: '#F8F9FA',
+        accent: {
+          DEFAULT: '#2C4637', // Verde bosque profundo
+          50: '#EAF3F0',
+          100: '#CFE3DA',
+          200: '#A0C7B5',
+          300: '#72AB90',
+          400: '#4C8B6E',
+          500: '#2C4637', // Main accent
+          600: '#203429',
+          700: '#14221B',
+          800: '#08100D',
+          900: '#000000',
+        },
+        light: '#F9F7F1',
+        dark: '#232323',
         gray: {
           50: '#FAFAFA',
           100: '#F5F5F5',
@@ -46,9 +59,8 @@ module.exports = {
           600: '#757575',
           700: '#424242',
           800: '#212121',
-          900: '#0F0F0F', // Más negro
+          900: '#0F0F0F',
         },
-        // Colores adicionales para textos más contrastados
         neutral: {
           50: '#FAFAFA',
           100: '#F5F5F5',

@@ -1,59 +1,42 @@
 'use client'
 
-import React, { useRef } from 'react'
+import React from 'react'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import { FreeMode, Navigation } from 'swiper/modules'
 
 interface CarouselProps {
-  children: React.ReactNode
+  children: React.ReactNode[]
   className?: string
+  slidesPerView?: number
+  spaceBetween?: number
 }
 
-export default function Carousel({ children, className = '' }: CarouselProps) {
-  const scrollRef = useRef<HTMLDivElement>(null)
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const width = scrollRef.current.offsetWidth
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -width : width,
-        behavior: 'smooth',
-      })
-    }
-  }
-
+export default function Carousel({ children, className = '', slidesPerView = 1.2, spaceBetween = 16 }: CarouselProps) {
   return (
     <div className={`relative w-full ${className}`}>
-      {/* Flechas solo en desktop */}
-      <button
-        type="button"
-        onClick={() => scroll('left')}
-        className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 items-center justify-center shadow-md"
-        aria-label="Scroll left"
+      <Swiper
+        modules={[Navigation, FreeMode]}
+        navigation
+        freeMode
+        spaceBetween={spaceBetween}
+        slidesPerView={slidesPerView}
+        breakpoints={{
+          640: { slidesPerView: 1.5 },
+          768: { slidesPerView: 2.5 },
+          1024: { slidesPerView: 3.5 },
+          1280: { slidesPerView: 4.5 },
+        }}
+        className="pb-6"
+        style={{ paddingLeft: 0, paddingRight: 0 }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      <div
-        ref={scrollRef}
-        className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 px-2"
-        style={{ WebkitOverflowScrolling: 'touch' }}
-      >
-        {React.Children.map(children, (child, idx) => (
-          <div className="snap-center shrink-0 w-full md:w-1/2 lg:w-1/4 max-w-xs md:max-w-none" key={idx}>
+        {children.map((child, idx) => (
+          <SwiperSlide key={idx} className="!h-auto flex items-stretch">
             {child}
-          </div>
+          </SwiperSlide>
         ))}
-      </div>
-      <button
-        type="button"
-        onClick={() => scroll('right')}
-        className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 items-center justify-center shadow-md"
-        aria-label="Scroll right"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+      </Swiper>
     </div>
   )
 }

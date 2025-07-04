@@ -5,6 +5,7 @@ import Footer from '@/components/layout/Footer'
 import { fetchRestaurants } from '@/lib/sanity'
 import RestaurantCard from '@/components/ui/RestaurantCrad'
 import Carousel from '@/components/ui/Carousel'
+import HeroSection from '@/components/features/HeroSection'
 
 const TYPE_LABELS: Record<string, string> = {
   italian: 'Italian',
@@ -29,24 +30,21 @@ export default async function CollectionsPage() {
 
   return (
     <div className="relative">
-
       <div className="h-24"></div>
-      <section className="relative overflow-hidden bg-primary text-white py-24 md:py-32">
-        <div className="container mx-auto px-4 text-center">
-          <span className="inline-block px-6 py-2 mb-8 text-base font-bold text-primary bg-white rounded-full shadow-lg border-2 border-secondary">
-            Curated Collections
-          </span>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 text-white">
-            Discover by{' '}
-            <span className="text-secondary font-lobster font-light text-6xl md:text-7xl lg:text-8xl inline-block">
-              Type
-            </span>
-          </h1>
-          <p className="max-w-2xl mx-auto text-lg md:text-xl text-white/90 font-medium mt-4">
-            Browse our handpicked restaurant collections by cuisine. Whether you crave Italian classics, healthy vegan options, or something new, you’ll find the perfect spot for every occasion.
-          </p>
-        </div>
-      </section>
+      <HeroSection
+        badge={<span>Collections</span>}
+        title={
+          <>
+            Discover Our <span className="text-secondary font-lobster font-light text-5xl sm:text-6xl md:text-7xl inline-block">Curated</span>
+            <br />
+            <span className="text-3xl sm:text-4xl md:text-5xl">Collections</span>
+          </>
+        }
+        subtitle={
+          <>Explore restaurants grouped by cuisine and style. Find your next favorite spot in Kigali!</>
+        }
+        className="relative overflow-hidden bg-primary text-white py-12 sm:py-16 md:py-20 lg:py-24"
+      />
       <section className="relative py-20 bg-gray-50">
         <div className="container mx-auto px-4 space-y-16">
           {TYPE_ORDER.map((type, idx) => (
@@ -77,7 +75,6 @@ export default async function CollectionsPage() {
           ))}
         </div>
       </section>
-
     </div>
   )
 }

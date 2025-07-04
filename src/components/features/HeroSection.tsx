@@ -2,9 +2,23 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Link from 'next/link'
+import { ReactNode } from 'react'
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  badge?: ReactNode
+  title: ReactNode
+  subtitle?: ReactNode
+  buttons?: ReactNode
+  className?: string // para custom bg, etc.
+}
+
+export default function HeroSection({
+  badge,
+  title,
+  subtitle,
+  buttons,
+  className = 'relative overflow-hidden bg-primary text-white py-12 sm:py-16 md:py-20 lg:py-24',
+}: HeroSectionProps) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -41,7 +55,7 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-primary text-white py-24 md:py-32">
+    <section className={className}>
       {/* Elementos animados de fondo simples */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -57,71 +71,50 @@ export default function HeroSection() {
         />
       </div>
 
-    <motion.div
-      className="container mx-auto px-4 text-center relative z-10"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+      <motion.div
+        className="container mx-auto px-4 sm:px-6 text-center mt-10 sm:mt-10 md:mt-0 relative z-10"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
         {/* Badge animado */}
-        <motion.span
-          variants={itemVariants}
-          className="inline-block px-6 py-2 mb-8 text-base font-bold text-primary bg-white rounded-full shadow-lg border-2 border-secondary"
-          whileHover={{ scale: 1.05, y: -2 }}
-        >
-        Premium Dining Experiences
-        </motion.span>
+        {badge && (
+          <motion.span
+            variants={itemVariants}
+            className="inline-block px-4 sm:px-6 py-1 sm:py-2 mb-6 sm:mb-8 text-sm sm:text-base font-bold text-primary bg-white rounded-full shadow-lg border-2"
+            whileHover={{ scale: 1.05, y: -2 }}
+          >
+            {badge}
+          </motion.span>
+        )}
 
         {/* Título principal */}
         <motion.h1
-          className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 text-white"
+          className="text-2xl sm:text-4xl md:text-5xl lg:text-5xl font-black leading-tight mb-4 sm:mb-6 text-white"
           variants={titleVariants}
         >
-          Taste the{' '}
-          <motion.span 
-            className="text-secondary font-lobster font-light text-6xl md:text-7xl lg:text-8xl inline-block"
-            whileHover={{ 
-              scale: 1.05,
-              rotate: [-1, 1, -1, 0],
-              transition: { duration: 0.3 }
-            }}
-          >
-            GoMange
-          </motion.span>
-          <br />
-          <span className="text-4xl md:text-5xl lg:text-6xl">Experience</span>
+          {title}
         </motion.h1>
 
         {/* Subtítulo */}
-        <motion.p
-          className="max-w-3xl mx-auto text-xl md:text-2xl text-white font-medium mb-10 leading-relaxed"
-          variants={itemVariants}
-        >
-          Explore extraordinary dining experiences. From hidden gems to award-winning restaurants — your perfect meal awaits.
-        </motion.p>
+        {subtitle && (
+          <motion.p
+            className="max-w-3xl mx-auto text-lg sm:text-xl md:text-2xl text-white font-medium mb-8 sm:mb-10 leading-relaxed"
+            variants={itemVariants}
+          >
+            {subtitle}
+          </motion.p>
+        )}
 
         {/* Botones */}
-        <motion.div 
-          className="flex flex-col sm:flex-row justify-center gap-4"
-          variants={itemVariants}
-        >
-          <motion.a
-            href="#restaurant-list"
-            className="px-6 py-3 bg-white text-primary font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+        {buttons && (
+          <motion.div 
+            className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4"
+            variants={itemVariants}
           >
-            Find Restaurants
-          </motion.a>
-          <motion.a
-            href="/about"
-            className="px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-primary transition-colors"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            How It Works
-          </motion.a>
-        </motion.div>
+            {buttons}
+          </motion.div>
+        )}
       </motion.div>
     </section>
   )

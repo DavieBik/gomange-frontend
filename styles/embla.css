@@ -1,0 +1,19 @@
+.embla {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+.embla__container {
+  display: flex;
+  flex-direction: row;
+  will-change: transform;
+  overflow: visible;
+}
+.embla__slide {
+  position: relative;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-x;
+  overflow: visible;
+}

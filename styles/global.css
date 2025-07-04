@@ -42,7 +42,7 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center font-medium rounded-full transition-all duration-300 ease-out;
+    @apply inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:ring-offset-1 shadow-sm;
   }
 
   .btn-md {
@@ -50,23 +50,31 @@
   }
 
   .btn-lg {
-    @apply px-8 py-4 text-lg;
+    @apply px-7 py-3 text-lg;
   }
 
   .btn-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-4 focus:ring-primary-300;
+    @apply bg-primary-600 text-white hover:bg-primary-700 border border-primary-600 hover:border-primary-700;
   }
 
   .btn-secondary {
-    @apply bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-4 focus:ring-secondary-300;
+    @apply bg-secondary-500 text-white hover:bg-secondary-600 border border-secondary-600;
+  }
+
+  .btn-tertiary {
+    @apply border border-primary-600 text-primary-700 bg-white hover:bg-primary-50;
   }
 
   .btn-outline {
-    @apply border border-primary-500 text-primary-500 hover:bg-primary-50;
+    @apply border border-primary-600 text-primary-700 bg-white hover:bg-primary-50;
+  }
+
+  .btn-text {
+    @apply text-primary-700 hover:text-primary-900 bg-transparent border-none shadow-none px-3 py-2 rounded-md underline underline-offset-2 hover:bg-primary-50;
   }
 
   .btn-disabled {
-    @apply bg-gray-200 text-gray-500 cursor-not-allowed;
+    @apply bg-gray-200 text-gray-500 cursor-not-allowed opacity-60;
   }
 
 .card {

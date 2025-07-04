@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Pagination from '@/components/ui/Pagination'
 import RestaurantCard from '../ui/RestaurantCrad'
 
@@ -16,10 +17,16 @@ interface Restaurant {
 }
 
 export default function RestaurantGridWithFilters({ restaurants }: { restaurants: Restaurant[] }) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [location, setLocation] = useState('')
-  const [cuisine, setCuisine] = useState('')
-  const [priceRange, setPriceRange] = useState('')
+  const searchParams = useSearchParams();
+  const initialSearchTerm = searchParams.get('searchTerm') || '';
+  const initialLocation = searchParams.get('location') || '';
+  const initialCuisine = searchParams.get('cuisine') || '';
+  const initialPriceRange = searchParams.get('priceRange') || '';
+
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm)
+  const [location, setLocation] = useState(initialLocation)
+  const [cuisine, setCuisine] = useState(initialCuisine)
+  const [priceRange, setPriceRange] = useState(initialPriceRange)
   const [currentPage, setCurrentPage] = useState(1)
 
   // Función para mapear precios existentes a las nuevas categorías

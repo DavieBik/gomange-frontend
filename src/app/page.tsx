@@ -4,43 +4,29 @@ import Header from '@/components/layout/Header'
 import HeroSection from '@/components/features/HeroSection'
 import Footer from '@/components/layout/Footer'
 import { fetchRestaurants, fetchCollections } from '../lib/sanity'
-import RestaurantGridWithFilters from '@/components/features/RestaurantGridWithFilters'
-import CollectionsPreview from '@/components/features/CollectionsPreview'
-import HeroCarousel from '@/components/features/HeroCarousel'
-import CollectionsCarousel from '@/components/features/CollectionsCarousel'
+import RestaurantCard from '@/components/ui/RestaurantCrad'
 import FoodTypesCarousel from '@/components/features/FoodTypesCarousel'
+import HandpickedCarousel from '@/components/features/HandpickedCarousel'
 import Link from 'next/link'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+import { urlFor } from '@/lib/sanity'
+import { getPlaceholderImage } from '@/lib/utils'
 import {
-  mapPriceRange,
   getUniqueLocations,
   getUniqueCuisines,
-  filterRestaurants,
-  priceRanges
 } from '@/lib/restaurantFilters'
-import RestaurantFilteredList from '@/components/features/RestaurantFilteredList'
-import RestaurantCard from '@/components/ui/RestaurantCrad'
-import Carousel from '@/components/ui/Carousel'
-import { urlFor } from '@/lib/sanity'
-import { Swiper, SwiperSlide } from 'swiper/react';
-import HandpickedCarousel from '@/components/features/HandpickedCarousel'
-
-import { CUISINE_PLACEHOLDERS } from '@/lib/placeholders'
-import { getPlaceholderImage } from '@/lib/utils'
-
 
 export default async function HomePage() {
-  const allRestaurants = await fetchRestaurants()
-  const collections = await fetchCollections()
+  // Fetch data in parallel
+  const [allRestaurants, collections] = await Promise.all([
+    fetchRestaurants(),
+    fetchCollections()
+  ])
 
-  // Extraer opciones únicas para filtros
+  // Memoize derived data
   const locations = getUniqueLocations(allRestaurants)
   const cuisines = getUniqueCuisines(allRestaurants)
 
-  // Generar foodTypes dinámicamente a partir de los datos de restaurantes
   const foodTypes = cuisines.map((cuisine) => {
-    // Buscar un restaurante con esta cocina
     const match = allRestaurants.find(r => r.cuisine === cuisine)
     let image = ''
     if (match?.mainImage?.asset) {
@@ -53,13 +39,9 @@ export default async function HomePage() {
     return { name: cuisine, image }
   })
 
-  // Mostrar hasta 6 restaurantes en el carrusel
   const previewRestaurants = allRestaurants.slice(0, 6)
-
-  // Tomar una colección destacada real
   const featuredCollection = collections && collections.length > 0 ? collections[0] : null
 
-  // Ejemplo de artículos
   const articles = [
     {
       title: 'The Best New Restaurants in Kigali',
@@ -86,11 +68,7 @@ export default async function HomePage() {
       <div className="h-12 md:h-20"></div>
       {/* Hero Section */}
       <HeroSection
-        badge={
-          <>
-            Premium Dining Experiences
-          </>
-        }
+        badge={<span>Premium Dining Experiences</span>}
         title={
           <>
             Taste the{' '}
@@ -99,9 +77,7 @@ export default async function HomePage() {
             <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl">Experience</span>
           </>
         }
-        subtitle={
-          <>Explore extraordinary dining experiences. From hidden gems to award-winning restaurants — your perfect meal awaits.</>
-        }
+        subtitle={<>Explore extraordinary dining experiences. From hidden gems to award-winning restaurants — your perfect meal awaits.</>}
         buttons={
           <>
             <a
@@ -161,29 +137,29 @@ export default async function HomePage() {
         </form>
       </div>
 
-      {/* One row of restaurant cards on homepage as a scrollable carousel */}
+      {/* Featured Restaurants Carousel */}
       <section className="relative py-6 sm:py-10 bg-white">
         <div className="container mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-lg sm:text-2xl font-bold text-primary">Featured Restaurants</h2>
-              <Link href="/restaurants"  className="hidden sm:inline btn btn-text text-secondary-400 font-semibold w-auto text-right text-xs sm:text-base">
-            View all 
-          </Link>
-          <Link href="/restaurants" className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-secondary-400 text-white text-xl font-bold shadow hover:bg-accent/80 transition-colors duration-150 ml-2" aria-label="See all">
-            <span>+</span>
-          </Link>
+            <Link href="/restaurants" className="hidden sm:inline btn btn-text text-secondary-400 font-semibold w-auto text-right text-xs sm:text-base">View all</Link>
+            <Link href="/restaurants" className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-secondary-400 text-white text-xl font-bold shadow hover:bg-accent/80 transition-colors duration-150 ml-2" aria-label="View all">
+              <span>+</span>
+            </Link>
           </div>
-          <div className="flex gap-3 sm:gap-6 overflow-x-auto pb-2 hide-scrollbar">
+          <div className="flex gap-6 sm:gap-8 pb-2 hide-scrollbar overflow-x-auto">
             {previewRestaurants.map((restaurant) => (
-              <div key={restaurant._id} className=" flex-shrink-0">
-                <RestaurantCard restaurant={restaurant} layout="grid" />
+              <div key={restaurant._id} className="flex-shrink-0">
+                <div className="relative z-10 bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl  min-w-[260px] max-w-[260px] h-[370px] flex flex-col items-center justify-between mx-1">
+                  <RestaurantCard restaurant={restaurant} layout="grid" />
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Types of Food Section  */}
+      {/* Types of Food Section */}
       <FoodTypesCarousel foodTypes={foodTypes} />
 
       {/* Handpicked for You */}
@@ -197,8 +173,8 @@ export default async function HomePage() {
               <span className="inline-block bg-primary-200 text-primary-800 text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full mr-0 sm:mr-2 mb-1 sm:mb-0">Signature Dishes</span>
               <h2 className="text-lg sm:text-2xl font-bold text-primary text-left drop-shadow-sm">Dish Spotlight</h2>
             </div>
-            <Link href="/restaurants" className="hidden sm:inline btn btn-text text-secondary-400 font-semibold underline underline-offset-4 w-auto text-center mt-2 sm:mt-0 text-xs sm:text-lg">See all &rarr;</Link>
-            <Link href="/restaurants" className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-secondary-400 text-white text-xl font-bold shadow hover:bg-secondary-500 transition-colors duration-150" aria-label="See all">
+            <Link href="/restaurants" className="hidden sm:inline btn btn-text text-secondary-400 font-semibold underline underline-offset-4 w-auto text-center mt-2 sm:mt-0 text-xs sm:text-lg">View all</Link>
+            <Link href="/restaurants" className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-secondary-400 text-white text-xl font-bold shadow hover:bg-secondary-500 transition-colors duration-150" aria-label="View all">
               <span>+</span>
             </Link>
           </div>
@@ -273,7 +249,7 @@ export default async function HomePage() {
         <div className="container mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-lg sm:text-2xl font-bold text-primary">Latest Articles</h2>
-            <Link href="/articles" className="btn btn-text text-accent-yellow font-semibold underline underline-offset-4 text-xs sm:text-base">See all &rarr;</Link>
+            <Link href="/articles" className="btn btn-text text-accent-yellow font-semibold underline underline-offset-4 text-xs sm:text-base">View all</Link>
           </div>
           <div className="flex gap-3 sm:gap-8 overflow-x-auto pb-2 hide-scrollbar">
             {articles.map((article, idx) => (

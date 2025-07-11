@@ -224,65 +224,15 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
             className="lg:col-span-2 space-y-8"
             variants={itemVariants}
           >
-            {/* Description */}
-            <div className="bg-white rounded-xl p-8 shadow-card">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                About This Restaurant
-              </h2>
-              
-              {restaurant.summary && (
-                <p className="text-lg font-medium text-gray-700 mb-4">
-                  {restaurant.summary}
-                </p>
-              )}
-              
-              {restaurant.description && (
-                <div className="text-gray-600 leading-relaxed">
-                  {restaurant.description.split('\n').map((paragraph: string, index: number) => (
-                    <p key={index} className="mb-4 last:mb-0">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Tags */}
-            {restaurant.tags && restaurant.tags.length > 0 && (
-              <div className="bg-white rounded-xl p-8 shadow-card">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className={`w-8 h-8 ${iconColorClass} rounded-xl flex items-center justify-center`}>
-                    <TagIcon className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Features & Specialties
-                  </h3>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {restaurant.tags.map((tag: string, index: number) => (
-                    <span
-                      key={index}
-                      className="px-4 py-2 bg-primary/10 text-primary font-semibold rounded-lg border border-primary/20"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Gallery */}
+            {/* Photos Section (Gallery) */}
             {restaurant.galleryImages && restaurant.galleryImages.length > 0 && (
-              <div className="bg-white rounded-xl p-8 shadow-card">
+              <section className="bg-white rounded-xl p-8 shadow-card">
                 <div className="flex items-center gap-3 mb-6">
                   <div className={`w-8 h-8 ${iconColorClass} rounded-xl flex items-center justify-center`}>
                     <PhotoIcon className="w-5 h-5 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Gallery
-                  </h3>
+                  <h2 className="text-2xl font-bold text-gray-900">Photos</h2>
                 </div>
-                
                 {/* Main selected image */}
                 <div className="mb-6">
                   <motion.div
@@ -299,7 +249,6 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                     />
                   </motion.div>
                 </div>
-
                 {/* Horizontal thumbnails */}
                 <div className="flex gap-3 overflow-x-auto pb-2">
                   {restaurant.galleryImages.map((image: any, index: number) => (
@@ -322,8 +271,99 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                     </motion.div>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
+
+            {/* About Section */}
+            <section className="bg-white rounded-xl p-8 shadow-card">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Restaurant</h2>
+              {restaurant.summary && (
+                <p className="text-lg font-medium text-gray-700 mb-4">{restaurant.summary}</p>
+              )}
+              {restaurant.description && (
+                <div className="text-gray-600 leading-relaxed">
+                  {restaurant.description.split('\n').map((paragraph: string, index: number) => (
+                    <p key={index} className="mb-4 last:mb-0">{paragraph}</p>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Features & Specialties Section (Tags) */}
+            {restaurant.tags && restaurant.tags.length > 0 && (
+              <section className="bg-white rounded-xl p-8 shadow-card">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className={`w-8 h-8 ${iconColorClass} rounded-xl flex items-center justify-center`}>
+                    <TagIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Features & Specialties</h2>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {restaurant.tags
+                    .flatMap((tag: string) => tag.split(';').map((t: string) => t.trim()).filter(Boolean))
+                    .map((tag: string, index: number) => (
+                      <span
+                        key={index}
+                        className="px-4 py-2 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 whitespace-nowrap shadow-sm"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                </div>
+              </section>
+            )}
+
+            {/* Menu Section */}
+            <section className="bg-white rounded-xl p-8 shadow-card">
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-8 h-8 ${iconColorClass} rounded-xl flex items-center justify-center`}>
+                  <BuildingStorefrontIcon className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Menu</h2>
+              </div>
+              <div className="text-gray-600 text-base">
+                <p>Menu details coming soon...</p>
+              </div>
+            </section>
+
+            {/* Reviews Section */}
+            <section className="bg-white rounded-xl p-8 shadow-card">
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-8 h-8 ${iconColorClass} rounded-xl flex items-center justify-center`}>
+                  <HeartIcon className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Reviews</h2>
+              </div>
+              <div className="text-gray-600 text-base">
+                <p>Reviews will be available soon.</p>
+              </div>
+            </section>
+
+            {/* Order Section */}
+            <section className="bg-white rounded-xl p-8 shadow-card">
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-8 h-8 ${iconColorClass} rounded-xl flex items-center justify-center`}>
+                  <CurrencyDollarIcon className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Order</h2>
+              </div>
+              <div className="text-gray-600 text-base">
+                <p>Online ordering coming soon.</p>
+              </div>
+            </section>
+
+            {/* Book Table Section */}
+            <section className="bg-white rounded-xl p-8 shadow-card">
+              <div className="flex items-center gap-3 mb-6">
+                <div className={`w-8 h-8 ${iconColorClass} rounded-xl flex items-center justify-center`}>
+                  <MapPinIcon className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Book Table</h2>
+              </div>
+              <div className="text-gray-600 text-base">
+                <p>Table reservation will be available soon.</p>
+              </div>
+            </section>
           </motion.div>
 
           {/* Sidebar */}

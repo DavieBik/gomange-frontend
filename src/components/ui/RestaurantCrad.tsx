@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { urlFor } from '@/lib/sanity'
 import type { Restaurant } from '@/types/sanity'
 import { getPlaceholderImage } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
 
 type RestaurantCardVariant = 'default' | 'featured' | 'traditional'
 
@@ -19,6 +20,7 @@ export default function RestaurantCard({
   layout = 'grid',
   variant = 'default',
 }: RestaurantCardProps) {
+  const router = useRouter()
   // Determinar la imagen a mostrar en el primer render (sin useEffect)
   let imgSrc = ''
   if (restaurant.mainImage?.asset) {
@@ -52,6 +54,22 @@ export default function RestaurantCard({
     featured: 'bg-white text-primary-700',
     traditional: 'bg-secondary-500 text-white',
   }
+
+  // Utilidad para mostrar la ubicación según ciudad/distrito
+  const getLocationDisplay = (restaurant: Restaurant) => {
+    if (!restaurant.neighbourhood) return ''
+    if (restaurant.city && restaurant.city.toLowerCase() === 'kigali') {
+      return `${restaurant.neighbourhood}, ${restaurant.city}`
+    } else if (restaurant.district) {
+      return `${restaurant.neighbourhood}, ${restaurant.district}`
+    }
+    return restaurant.neighbourhood
+  }
+
+  // Normalizar tags: dividir por punto y coma si vienen juntas
+  const normalizedTags = restaurant.tags
+    ? restaurant.tags.flatMap((tag: string) => tag.split(';').map((t: string) => t.trim()).filter(Boolean))
+    : [];
 
   return (
     <Link
@@ -117,11 +135,16 @@ export default function RestaurantCard({
                   variant === 'featured' ? 'text-primary-100' : 'text-gray-600'
                 }`}
               >
-                {restaurant.neighbourhood}
+                {getLocationDisplay(restaurant)}
               </p>
             </div>
           </div>
         </div>
+
+        {/* Mostrar resumen corto si existe */}
+        {restaurant.summary && (
+          <p className={`text-sm font-medium ${textClass} line-clamp-2`}>{restaurant.summary}</p>
+        )}
 
         {restaurant.cuisine && (
           <div className="flex items-center gap-1">
@@ -138,26 +161,25 @@ export default function RestaurantCard({
           </div>
         )}
 
-        {/* Tags compactos */}
-        {restaurant.tags && restaurant.tags.length > 0 && (
-          <div className={`flex flex-wrap gap-1 ${layout === 'list' ? 'md:gap-2' : ''}`}>
-            {restaurant.tags.slice(0, layout === 'list' ? 3 : 2).map((tag: string, index: number) => (
-              <span
+        {/* Tags mejoradas y clicables */}
+        {normalizedTags.length > 0 && (
+          <div className={`flex flex-wrap gap-3 mt-3`}> 
+            {normalizedTags.slice(0, layout === 'list' ? 3 : 4).map((tag: string, index: number) => (
+              <button
                 key={index}
-                className={`text-xs font-semibold px-2 py-1 rounded-full transition-all duration-300 ${layout === 'list' ? 'md:text-sm md:px-3 md:py-1.5' : ''} ${
-                  variant === 'featured'
-                    ? 'bg-white/20 text-white hover:bg-white/30'
-                    : 'bg-primary-50 text-primary-700 hover:bg-primary-100'
-                }`}
+                type="button"
+                className={`text-xs font-semibold px-4 py-2 rounded-full transition-all duration-300 border border-primary-200 bg-white text-primary-700 hover:bg-primary-100 hover:scale-105 shadow-sm whitespace-nowrap`}
+                onClick={e => {
+                  e.stopPropagation();
+                  router.push(`/restaurants?tag=${encodeURIComponent(tag)}`)
+                }}
               >
-                #{tag.replace(/\s+/g, '')}
-              </span>
+                {tag}
+              </button>
             ))}
-            {restaurant.tags.length > (layout === 'list' ? 3 : 2) && (
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${layout === 'list' ? 'md:text-sm md:px-3 md:py-1.5' : ''} ${
-                variant === 'featured' ? 'text-primary-200' : 'text-gray-500'
-              }`}>
-                +{restaurant.tags.length - (layout === 'list' ? 3 : 2)}
+            {normalizedTags.length > (layout === 'list' ? 3 : 4) && (
+              <span className={`text-xs font-medium px-3 py-2 rounded-full text-gray-500 whitespace-nowrap`}>
+                +{normalizedTags.length - (layout === 'list' ? 3 : 4)}
               </span>
             )}
           </div>

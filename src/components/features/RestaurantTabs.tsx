@@ -12,6 +12,8 @@ interface Restaurant {
   neighbourhood?: string
   cuisine?: string
   priceRange?: string
+  city?: string
+  district?: string
 }
 
 interface RestaurantTabsProps {
@@ -21,20 +23,37 @@ interface RestaurantTabsProps {
 export default function RestaurantTabs({ restaurants }: RestaurantTabsProps) {
   const [activeTab, setActiveTab] = useState('all')
 
+  // Utility to get user's city/district (mock for now)
+  const getUserLocation = () => {
+    // In real app, use geolocation or user profile
+    return {
+      city: 'Kigali',
+      district: 'Gasabo',
+      neighbourhood: 'Kacyiru',
+    }
+  }
+
+  const userLocation = getUserLocation()
+
   // Definir las tabs
   const tabs = [
     { id: 'all', label: 'All Restaurants', variant: 'primary' as const },
-    { id: 'nearby', label: 'Near Me', variant: 'secondary' as const },
+    { id: 'nearby', label: 'Nearby', variant: 'secondary' as const },
     { id: 'saved', label: 'Saved', variant: 'disabled' as const },
   ]
 
   // Filtrar restaurantes según la tab activa
   const getFilteredRestaurants = () => {
     if (activeTab === 'nearby') {
-      return restaurants.filter(r => r.neighbourhood === 'Kacyiru')
+      // Show restaurants in user's city/district
+      return restaurants.filter(r =>
+        (r.city && r.city === userLocation.city) ||
+        (r.district && r.district === userLocation.district)
+      )
     }
     if (activeTab === 'saved') {
-      return restaurants.filter(r => r._id.includes('save')) // Simulación de favoritos
+      // Placeholder for real favorites
+      return restaurants.filter(r => r._id.includes('save'))
     }
     return restaurants
   }
@@ -46,7 +65,7 @@ export default function RestaurantTabs({ restaurants }: RestaurantTabsProps) {
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold mb-8 text-gray-900">All Restaurants</h2>
 
-        {/* Botones */}
+        {/* Tabs */}
         <TabButtons
           tabs={tabs}
           activeId={activeTab}
@@ -61,15 +80,23 @@ export default function RestaurantTabs({ restaurants }: RestaurantTabsProps) {
 
           {activeTab === 'nearby' && (
             <div>
-              <h3 className="text-xl font-semibold mb-4">Restaurants in Kacyiru</h3>
+              <h3 className="text-xl font-semibold mb-4">
+                Restaurants in {userLocation.city} {userLocation.district ? `/ ${userLocation.district}` : ''}
+              </h3>
               <RestaurantListWithFilters restaurants={filteredRestaurants} />
             </div>
           )}
 
           {activeTab === 'saved' && (
             <div className="text-center py-10">
-              <p className="text-lg text-gray-600">You haven't saved any restaurants yet.</p>
-              <button className="mt-4 btn-secondary">Browse Nearby</button>
+              <p className="text-lg text-gray-600">
+                {filteredRestaurants.length === 0
+                  ? "You haven't saved any restaurants yet."
+                  : `You have saved ${filteredRestaurants.length} restaurants.`}
+              </p>
+              <button className="mt-4 btn-secondary" onClick={() => setActiveTab('nearby')}>
+                Browse Nearby
+              </button>
             </div>
           )}
         </div>

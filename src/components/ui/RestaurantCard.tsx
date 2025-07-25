@@ -9,8 +9,9 @@ import { useRouter } from 'next/navigation'
 
 type RestaurantCardVariant = 'default' | 'featured' | 'traditional'
 
-interface RestaurantCardProps {
+type RestaurantCardProps = {
   restaurant: Restaurant
+  children?: React.ReactNode
   layout?: 'grid' | 'list'
   variant?: RestaurantCardVariant
 }
@@ -21,10 +22,16 @@ export default function RestaurantCard({
   variant = 'default',
 }: RestaurantCardProps) {
   const router = useRouter()
-  // Determinar la imagen a mostrar en el primer render (sin useEffect)
+
   let imgSrc = ''
-  if (restaurant.mainImage?.asset) {
-    imgSrc = urlFor(restaurant.mainImage.asset).width(800).url()
+
+  if (
+    restaurant.mainImage?.asset &&
+    (restaurant.mainImage.asset._ref || restaurant.mainImage.asset._id)
+  ) {
+    // Solo usa urlFor si es un asset de Sanity
+    const url = urlFor(restaurant.mainImage.asset).width(800).url()
+    imgSrc = url || '/placeholder/default.jpg'
   } else if (restaurant.Image_URL) {
     imgSrc = restaurant.Image_URL
   } else if (restaurant.cuisine) {

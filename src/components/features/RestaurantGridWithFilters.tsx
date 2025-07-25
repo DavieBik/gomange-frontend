@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Pagination from '@/components/ui/Pagination'
-import RestaurantCard from '../ui/RestaurantCrad'
+import RestaurantCard from '../ui/RestaurantCard'
 
 
 interface Restaurant {

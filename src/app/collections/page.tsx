@@ -3,7 +3,7 @@
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import { fetchRestaurants } from '@/lib/sanity'
-import RestaurantCard from '@/components/ui/RestaurantCrad'
+import RestaurantCard from '@/components/ui/RestaurantCard'
 import Carousel from '@/components/ui/Carousel'
 import HeroSection from '@/components/features/HeroSection'
 

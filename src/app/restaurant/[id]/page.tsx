@@ -1,28 +1,15 @@
 // app/restaurant/[id]/page.tsx
-import { fetchRestaurantById } from '@/lib/sanity'
+'use client'
+import useSWR from 'swr'
 import RestaurantDetail from '@/components/features/RestaurantDetail'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
-import { notFound } from 'next/navigation'
 
-interface RestaurantPageProps {
-  params: {
-    id: string
-  }
-}
+export default function RestaurantPage({ params }: { params: { id: string } }) {
+  const fetcher = (id: string) =>
+    fetch(`http://localhost:3001/api/restaurants/${id}`).then(res => res.json())
 
-export default async function RestaurantPage({ params }: RestaurantPageProps) {
-  let restaurant = null
-  let error = null
-  try {
-    // Debug output
-    console.log('RestaurantPage params.id:', params.id)
-    restaurant = await fetchRestaurantById(params.id)
-    console.log('Fetched restaurant:', restaurant)
-  } catch (err) {
-    error = err
-    console.error('Error fetching restaurant:', err)
-  }
+  const { data: restaurant, error, isLoading } = useSWR(params.id, fetcher, { refreshInterval: 10000 })
 
   if (error) {
     return (
@@ -34,17 +21,14 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
     )
   }
 
-  if (!restaurant) {
-    notFound()
+  if (isLoading || !restaurant) {
+    return <div className="p-8">Loading...</div>
   }
 
   return (
     <div className="relative">
-
       <div className="h-24"></div>
-      
       <RestaurantDetail restaurant={restaurant} />
- 
     </div>
   )
 }

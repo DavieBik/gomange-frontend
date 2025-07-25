@@ -19,11 +19,12 @@ import type { SanityImageSource } from '@sanity/image-url/lib/types/types'
 
 import type { Restaurant, Collection, Article } from '@/types/sanity'
 
+
 export const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'v0ejlvd9',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
   apiVersion: '2023-05-03',
-  useCdn: process.env.NODE_ENV === 'production',
+  useCdn: true
 })
 
 const builder = imageUrlBuilder(client)
@@ -114,5 +115,68 @@ export const fetchCollections = async (): Promise<Collection[]> => {
     }
   `)
 }
+
+// API RESTAURANT ENDPOINTS
+export const apiBase = process.env.NEXT_PUBLIC_API_BASE || '';
+
+export const getAllRestaurants = async (): Promise<{ restaurants: Restaurant[], total: number }> => {
+  const res = await fetch(`${apiBase}/api/restaurants`);
+  if (!res.ok) throw new Error('Error al obtener restaurantes');
+  const data = await res.json();
+  // Asegúrate de devolver un objeto con restaurants y total
+  if (Array.isArray(data.restaurants)) {
+    return { restaurants: data.restaurants, total: data.total || data.restaurants.length };
+  } else if (Array.isArray(data)) {
+    return { restaurants: data, total: data.length };
+  } else {
+    return { restaurants: [], total: 0 };
+  }
+};
+
+export const getRestaurantById = async (id: string): Promise<Restaurant> => {
+  const res = await fetch(`${apiBase}/api/restaurants/${id}`);
+  if (!res.ok) throw new Error('Error al obtener restaurante');
+  return await res.json();
+};
+
+export const updateRestaurantAPI = async (id: string, data: Partial<Restaurant>) => {
+  const res = await fetch(`${apiBase}/api/restaurants/${id}`, { // <-- plural
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Error al actualizar restaurante');
+  return await res.json();
+};
+
+export const createRestaurantAPI = async (data: Partial<Restaurant>) => {
+  const res = await fetch(`${apiBase}/api/restaurant`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Error al crear restaurante');
+  return await res.json();
+};
+
+export const deleteRestaurantAPI = async (id: string) => {
+  const res = await fetch(`${apiBase}/api/restaurants/${id}`, { // <-- plural
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Error al eliminar restaurante');
+  // Si tu backend responde con 204 No Content, no intentes hacer res.json()
+  return res.status === 204 ? {} : await res.json();
+};
+
+export const uploadImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await fetch(`${apiBase}/api/restaurant/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) throw new Error('Error al subir imagen');
+  return await res.json();
+};
 
 export type { Restaurant, Collection, Article } from '@/types/sanity'

@@ -17,7 +17,15 @@ export default function NewRestaurantPage() {
     phone: '',
     tags: [],
     Image_URL: '',
-    openingHours: '',
+    openingHours: {
+      monday: '',
+      tuesday: '',
+      wednesday: '',
+      thursday: '',
+      friday: '',
+      saturday: '',
+      sunday: '',
+    },
     facebook: '',
     instagram: '',
     twitter: '',
@@ -28,23 +36,39 @@ export default function NewRestaurantPage() {
   });
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const router = useRouter();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target;
     if (name === 'tags' || name === 'metaKeywords') {
       setForm({ ...form, [name]: value.split(',').map(t => t.trim()) });
     } else if (name === 'lgbtqFriendly') {
       setForm({ ...form, lgbtqFriendly: value === 'true' });
+    } else if (
+      [
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+        'sunday',
+      ].includes(name)
+    ) {
+      setForm({
+        ...form,
+        openingHours: {
+          ...form.openingHours,
+          [name]: value,
+        },
+      });
     } else {
-      setForm({ ...form, [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value });
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
+      setForm({
+        ...form,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      });
     }
   };
 
@@ -54,21 +78,20 @@ export default function NewRestaurantPage() {
 
     const formData = new FormData();
 
-    // Agrupa socialMedia
-    formData.append(
-      'socialMedia',
-      JSON.stringify({
-        facebook: form.facebook || '',
-        instagram: form.instagram || '',
-        twitter: form.twitter || '',
-        youtube: form.youtube || '',
-      })
-    );
-
-    // Solo agrega los campos válidos
+    // Only add valid fields
     const allowedFields = [
-      'name', 'neighbourhood', 'streetAddress', 'city', 'cuisine', 'priceRange',
-      'summary', 'description', 'website', 'phone', 'metaDescription', 'lgbtqFriendly', 'openingHours'
+      'name',
+      'neighbourhood',
+      'streetAddress',
+      'city',
+      'cuisine',
+      'priceRange',
+      'summary',
+      'description',
+      'website',
+      'phone',
+      'metaDescription',
+      'lgbtqFriendly',
     ];
 
     allowedFields.forEach(key => {
@@ -86,10 +109,17 @@ export default function NewRestaurantPage() {
       formData.append('metaKeywords', form.metaKeywords.join(','));
     }
 
-    // Imagen: archivo o URL
-    if (imageFile) {
-      formData.append('mainImage', imageFile);
-    } else if (form.Image_URL) {
+    // Opening hours as JSON string
+    formData.append('openingHours', JSON.stringify(form.openingHours));
+
+    // Social media fields
+    formData.append('facebook', form.facebook || '');
+    formData.append('instagram', form.instagram || '');
+    formData.append('twitter', form.twitter || '');
+    formData.append('youtube', form.youtube || '');
+
+    // Only send imageUrl (no file upload)
+    if (form.Image_URL) {
       formData.append('imageUrl', form.Image_URL);
     }
 
@@ -120,43 +150,95 @@ export default function NewRestaurantPage() {
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label className="block mb-1">Name</label>
-          <input name="name" value={form.name} onChange={handleChange} className="border px-3 py-2 rounded w-full" required />
+          <input
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+            required
+          />
         </div>
         <div>
           <label className="block mb-1">Neighbourhood</label>
-          <input name="neighbourhood" value={form.neighbourhood} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="neighbourhood"
+            value={form.neighbourhood}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Street Address</label>
-          <input name="streetAddress" value={form.streetAddress} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="streetAddress"
+            value={form.streetAddress}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">City</label>
-          <input name="city" value={form.city} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="city"
+            value={form.city}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Cuisine</label>
-          <input name="cuisine" value={form.cuisine} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="cuisine"
+            value={form.cuisine}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Price Range</label>
-          <input name="priceRange" value={form.priceRange} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="priceRange"
+            value={form.priceRange}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Summary</label>
-          <input name="summary" value={form.summary} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="summary"
+            value={form.summary}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Description</label>
-          <textarea name="description" value={form.description} onChange={handleChange} className="border px-3 py-2 rounded w-full" rows={3} />
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+            rows={3}
+          />
         </div>
         <div>
           <label className="block mb-1">Website</label>
-          <input name="website" value={form.website} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="website"
+            value={form.website}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Phone</label>
-          <input name="phone" value={form.phone} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Tags (comma separated)</label>
@@ -176,40 +258,71 @@ export default function NewRestaurantPage() {
             className="border px-3 py-2 rounded w-full mb-2"
             placeholder="Paste image URL here"
           />
-          <label className="block mb-1 mt-2">Or upload image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="border px-3 py-2 rounded w-full"
-          />
           <small className="text-gray-500">
-            You can paste an image URL or upload a file. If both are provided, the uploaded image will be used.
+            Only paste an image URL. File upload is disabled.
           </small>
         </div>
         <div>
           <label className="block mb-1">Opening Hours</label>
-          <input name="openingHours" value={form.openingHours} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <div className="grid grid-cols-2 gap-2">
+            {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+              <div key={day}>
+                <label className="block mb-1 capitalize">{day}</label>
+                <input
+                  name={day}
+                  value={form.openingHours[day]}
+                  onChange={handleChange}
+                  className="border px-3 py-2 rounded w-full"
+                  placeholder="e.g. 9:00-18:00"
+                />
+              </div>
+            ))}
+          </div>
         </div>
         <div>
           <label className="block mb-1">Facebook URL</label>
-          <input name="facebook" value={form.facebook} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="facebook"
+            value={form.facebook}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Instagram URL</label>
-          <input name="instagram" value={form.instagram} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="instagram"
+            value={form.instagram}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Twitter URL</label>
-          <input name="twitter" value={form.twitter} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="twitter"
+            value={form.twitter}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">YouTube URL</label>
-          <input name="youtube" value={form.youtube} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="youtube"
+            value={form.youtube}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Meta Description</label>
-          <input name="metaDescription" value={form.metaDescription} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <input
+            name="metaDescription"
+            value={form.metaDescription}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
         </div>
         <div>
           <label className="block mb-1">Meta Keywords (comma separated)</label>

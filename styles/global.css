@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-white text-gray-800 antialiased;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl font-bold;
+  }
+  
+  h2 {
+    @apply text-3xl md:text-4xl font-bold;
+  }
+  
+  h3 {
+    @apply text-2xl md:text-3xl font-bold;
+  }
+  
+  h4 {
+    @apply text-xl md:text-2xl font-bold;
+  }
+
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  /* Custom selection color */
+  ::selection {
+    @apply bg-primary-500 text-white;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:ring-offset-1 shadow-sm;
+  }
+
+  .btn-md {
+    @apply px-6 py-3 text-base;
+  }
+
+  .btn-lg {
+    @apply px-7 py-3 text-lg;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 border border-primary-600 hover:border-primary-700;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-500 text-white hover:bg-secondary-600 border border-secondary-600;
+  }
+
+  .btn-tertiary {
+    @apply border border-primary-600 text-primary-700 bg-white hover:bg-primary-50;
+  }
+
+  .btn-outline {
+    @apply border border-primary-600 text-primary-700 bg-white hover:bg-primary-50;
+  }
+
+  .btn-text {
+    @apply text-primary-700 hover:text-primary-900 bg-transparent border-none shadow-none px-3 py-2 rounded-md underline underline-offset-2 hover:bg-primary-50;
+  }
+
+  .btn-disabled {
+    @apply bg-gray-200 text-gray-500 cursor-not-allowed opacity-60;
+  }
+
+.card {
+  @apply bg-white rounded-xl overflow-hidden shadow-card transition-all duration-300 hover:shadow-card-hover;
+}
+
+.card-featured {
+  @apply bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-lg hover:shadow-xl rounded-xl overflow-hidden transform hover:scale-105;
+}
+  .section {
+    @apply py-12 md:py-20 lg:py-24;
+  }
+
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .select {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .keen-slider__slide:not(:first-child) {
+  margin-left: 1rem;
+}
+  /* Custom animations */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}

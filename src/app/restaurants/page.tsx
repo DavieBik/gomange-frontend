@@ -1,0 +1,25 @@
+'use client'
+import useSWR from 'swr'
+import RestaurantGridWithFilters from '@/components/features/RestaurantGridWithFilters'
+import Header from '@/components/layout/Header'
+import Footer from '@/components/layout/Footer'
+
+const fetcher = () =>
+  fetch('http://localhost:3001/api/restaurants')
+    .then(res => res.json())
+    .then(data => data.restaurants)
+
+export default function RestaurantsPage() {
+  const { data: restaurants = [], isLoading } = useSWR('/api/restaurants', fetcher, { refreshInterval: 10000 }) 
+
+  return (
+    <div className="relative min-h-screen bg-gray-50">
+      <Header />
+      <main className="container mx-auto px-4 py-32">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-primary mb-8 text-center">All Restaurants</h1>
+        {isLoading ? <div>Loading...</div> : <RestaurantGridWithFilters restaurants={restaurants} />}
+      </main>
+      <Footer />
+    </div>
+  )
+}

@@ -1,1 +1,20 @@
-echo node_modules 
+# Dependencias
+node_modules/
+/.next/
+
+# Entorno
+.env*.local
+.env
+
+# Sanity
+.sanity/
+
+# IDE/Editor
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store
+
+# Next.js
+.next/

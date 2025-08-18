@@ -150,7 +150,7 @@ export const updateRestaurantAPI = async (id: string, data: Partial<Restaurant>)
 };
 
 export const createRestaurantAPI = async (data: Partial<Restaurant>) => {
-  const res = await fetch(`${apiBase}/api/restaurant`, {
+  const res = await fetch(`${apiBase}/api/restaurants`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),

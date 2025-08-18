@@ -15,16 +15,22 @@ export default function EditRestaurantPage() {
 
   useEffect(() => {
     if (id) {
-      getRestaurantById(id as string).then(setForm);
+      console.log('[Edit] Fetching restaurant by id:', id);
+      getRestaurantById(id as string).then(data => {
+        console.log('[Edit] Fetched restaurant data:', data);
+        setForm(data);
+      });
     }
   }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    console.log('[Edit] Field changed:', e.target.name, e.target.value);
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      console.log('[Edit] Image file selected:', e.target.files[0]);
       setImageFile(e.target.files[0]);
     }
   };
@@ -33,88 +39,45 @@ export default function EditRestaurantPage() {
     e.preventDefault();
     setLoading(true);
 
-    const formData = new FormData();
-
-    // Excluye los campos sociales sueltos y openingHours
-    const { facebook, instagram, twitter, youtube, openingHours, ...rest } = form;
-
-    // Elimina campos internos de Sanity
-    const {
-      _createdAt,
-      _id,
-      _rev,
-      _type,
-      _updatedAt,
-      socialMedia, // <-- Elimina socialMedia aquí
-      ...fieldsToSend
-    } = rest;
-
-    // Agrega solo los campos válidos, EXCLUYENDO socialMedia
-    Object.entries(fieldsToSend).forEach(([key, value]) => {
-      if (key === 'socialMedia') return; // <-- NO agregar socialMedia aquí
-      if (Array.isArray(value)) {
-        formData.append(key, value.join(','));
-      } else if (typeof value === 'boolean') {
-        formData.append(key, value ? 'true' : 'false');
-      } else if (value !== undefined && value !== null) {
-        formData.append(key, value as string);
-      }
-    });
-
-    // Serializa openingHours si es objeto
-    if (openingHours && typeof openingHours === 'object') {
-      formData.append('openingHours', JSON.stringify(openingHours));
-    } else if (openingHours) {
-      formData.append('openingHours', openingHours as string);
-    }
-
-    // Solo agrega socialMedia como JSON string
-    formData.append(
-      'socialMedia',
-      JSON.stringify({
-        facebook: facebook || '',
-        instagram: instagram || '',
-        twitter: twitter || '',
-        youtube: youtube || '',
-      })
-    );
-
-    if (imageFile) {
-      formData.append('mainImage', imageFile);
-    }
-
-    // Debug: log todos los valores de FormData
-    for (let pair of formData.entries()) {
-      console.log('FormData:', pair[0], pair[1]);
-    }
+    // Prepara los datos para el backend
+    const dataToSend = {
+      ...form,
+      openingHours: typeof form.openingHours === 'object' ? form.openingHours : {},
+      tags: Array.isArray(form.tags) ? form.tags : [],
+      metaKeywords: Array.isArray(form.metaKeywords) ? form.metaKeywords : [],
+      lgbtqFriendly: !!form.lgbtqFriendly,
+    };
 
     try {
       const response = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
         method: 'PUT',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend),
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const result = await response.json();
       setShowModal(true);
     } catch (err) {
-      console.error('Update error:', err);
       alert(`Error updating restaurant: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
     setLoading(false);
   };
 
-  if (!form || !form.name) return <div className="p-8">Loading...</div>;
+  if (!form || !form.name) {
+    console.log('[Edit] Loading restaurant data...');
+    return <div className="p-8">Loading...</div>;
+  }
 
   return (
     <div className="max-w-xl mx-auto p-8 bg-white rounded-lg shadow-card">
       <button
         type="button"
         className="btn-secondary btn-xs flex items-center gap-1 mb-4"
-        onClick={() => router.push('/admin/')}
+        onClick={() => {
+          console.log('[Edit] Navigating back to /admin');
+          router.push('/admin');
+          router.refresh();
+        }}
       >
         <span className="text-base">←</span>
         Back
@@ -256,10 +219,10 @@ export default function EditRestaurantPage() {
             <p className="mb-6">The restaurant has been successfully updated.</p>
             <button
               className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 transition"
-             onClick={() => {
-  router.push('/admin');
-  router.refresh();
-}}
+              onClick={() => {
+                console.log('[Edit] Go to restaurants button clicked, navigating to /admin?refresh=1');
+                router.push('/admin?refresh=1');
+              }}
             >
               Go to restaurants
             </button>

@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 
 const fetcher = () =>
-  fetch('http://localhost:3001/api/restaurants')
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurants`)
     .then(res => res.json())
     .then(data => data.restaurants)
 

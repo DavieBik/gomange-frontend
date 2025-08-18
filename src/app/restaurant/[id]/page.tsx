@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer'
 
 export default function RestaurantPage({ params }: { params: { id: string } }) {
   const fetcher = (id: string) =>
-    fetch(`http://localhost:3001/api/restaurants/${id}`).then(res => res.json())
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/restaurants/${id}`).then(res => res.json())
 
   const { data: restaurant, error, isLoading } = useSWR(params.id, fetcher, { refreshInterval: 10000 })
 

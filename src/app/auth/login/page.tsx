@@ -7,7 +7,7 @@ import Link from 'next/link';
 import AuthForm from '@/components/ui/AuthForm';
 
 async function login(email: string, password: string) {
-  const res = await fetch('http://localhost:3001/api/auth/login', {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),

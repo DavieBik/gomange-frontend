@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAllRestaurants, deleteRestaurantAPI } from '@/lib/sanity';
 import type { Restaurant } from '@/types/sanity';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Pagination from '../ui/Pagination';
 
 const PAGE_SIZE = 20;
@@ -14,16 +14,29 @@ export default function RestaurantsAdmin() {
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const fetchRestaurants = async () => {
     const data = await getAllRestaurants();
     setRestaurants(Array.isArray(data.restaurants) ? data.restaurants : []);
     setTotal(data.total || 0);
+    console.log('Listado actualizado:', data.restaurants);
   };
 
   useEffect(() => {
+    // Refresca la lista cada vez que el componente se monta
     fetchRestaurants();
+    console.log('Refrescando listado de restaurantes');
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('refresh') === '1') {
+      fetchRestaurants();
+      console.log('Refrescando listado tras edición');
+      // Limpia el query param para evitar refrescos innecesarios
+      router.replace('/admin');
+    }
+  }, [searchParams, router]);
 
   const handleDelete = async () => {
     if (!deleteId) return;

@@ -1,5 +1,6 @@
 'use client'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
+import { useEffect } from 'react'
 import RestaurantGridWithFilters from '@/components/features/RestaurantGridWithFilters'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
@@ -10,7 +11,12 @@ const fetcher = () =>
     .then(data => data.restaurants)
 
 export default function RestaurantsPage() {
-  const { data: restaurants = [], isLoading } = useSWR('/api/restaurants', fetcher, { refreshInterval: 10000 }) 
+  const { data: restaurants = [], isLoading } = useSWR('/api/restaurants', fetcher, { refreshInterval: 10000 })
+
+  useEffect(() => {
+    // Fuerza el refresco inmediato al montar la página
+    mutate('/api/restaurants')
+  }, [])
 
   return (
     <div className="relative min-h-screen bg-gray-50">

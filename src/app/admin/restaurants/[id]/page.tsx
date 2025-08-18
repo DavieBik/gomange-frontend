@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getRestaurantById, updateRestaurantAPI } from '@/lib/sanity';
+import { getRestaurantById, updateRestaurantAPI, urlFor } from '@/lib/sanity';
 import type { Restaurant } from '@/types/sanity';
 
 export default function EditRestaurantPage() {
@@ -167,6 +167,31 @@ export default function EditRestaurantPage() {
             className="border px-3 py-2 rounded w-full"
           />
         </div>
+
+        {/* Main Image Preview (actual) */}
+        {form.mainImage && form.mainImage.asset && !imageFile && (
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">Current Main Image</label>
+            <img
+              src={urlFor(form.mainImage).width(400).height(250).url()}
+              alt={form.name || 'Main Image'}
+              className="rounded-lg border w-full max-w-xs"
+            />
+          </div>
+        )}
+
+        {/* Preview of new image if selected */}
+        {imageFile && (
+          <div className="mb-4">
+            <label className="block mb-1 font-semibold">New Main Image Preview</label>
+            <img
+              src={URL.createObjectURL(imageFile)}
+              alt="New Main Image"
+              className="rounded-lg border w-full max-w-xs"
+            />
+          </div>
+        )}
+
         <div>
           <label className="block mb-1">Main Image (URL)</label>
           <input

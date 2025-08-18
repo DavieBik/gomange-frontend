@@ -241,35 +241,54 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                     animate={{ opacity: 1 }}
                     key={selectedImageIndex}
                   >
-                    <Image
-                      src={urlFor(restaurant.galleryImages[selectedImageIndex]).width(800).height(450).url()}
-                      alt={`${restaurant.name} gallery ${selectedImageIndex + 1}`}
-                      fill
-                      className="object-cover"
-                    />
+                    {restaurant.galleryImages &&
+                      restaurant.galleryImages[selectedImageIndex] &&
+                      restaurant.galleryImages[selectedImageIndex].asset ? (
+                        <Image
+                          src={urlFor(restaurant.galleryImages[selectedImageIndex]).width(800).height(450).url()}
+                          alt={`${restaurant.name} gallery ${selectedImageIndex + 1}`}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500 text-sm">
+                          No image available
+                        </div>
+                      )
+                    }
                   </motion.div>
                 </div>
                 {/* Horizontal thumbnails */}
                 <div className="flex gap-3 overflow-x-auto pb-2">
-                  {restaurant.galleryImages.map((image: any, index: number) => (
-                    <motion.div
-                      key={index}
-                      className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-300 ${
-                        selectedImageIndex === index 
-                          ? 'border-primary shadow-lg scale-105' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      whileHover={{ scale: selectedImageIndex === index ? 1.05 : 1.1 }}
-                      onClick={() => setSelectedImageIndex(index)}
-                    >
-                      <Image
-                        src={urlFor(image).width(100).height(100).url()}
-                        alt={`${restaurant.name} thumbnail ${index + 1}`}
-                        fill
-                        className="object-cover"
-                      />
-                    </motion.div>
-                  ))}
+                  {restaurant.galleryImages?.map((image: any, index: number) =>
+                    image && image.asset && image.asset._ref ? (
+                      <motion.div
+                        key={index}
+                        className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-300 ${
+                          selectedImageIndex === index 
+                            ? 'border-primary shadow-lg scale-105' 
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        whileHover={{ scale: selectedImageIndex === index ? 1.05 : 1.1 }}
+                        onClick={() => setSelectedImageIndex(index)}
+                      >
+                        <Image
+                          src={urlFor(image).width(100).height(100).url()}
+                          alt={`${restaurant.name} thumbnail ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          key={index}
+                        />
+                      </motion.div>
+                    ) : (
+                      <div
+                        key={index}
+                        className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500 text-xs"
+                      >
+                        No image
+                      </div>
+                    )
+                  )}
                 </div>
               </section>
             )}

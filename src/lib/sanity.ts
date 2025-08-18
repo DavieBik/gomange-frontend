@@ -117,7 +117,7 @@ export const fetchCollections = async (): Promise<Collection[]> => {
 }
 
 // API RESTAURANT ENDPOINTS
-export const apiBase = process.env.NEXT_PUBLIC_API_BASE || '';
+const apiBase = process.env.NEXT_PUBLIC_API_URL;
 
 export const getAllRestaurants = async (): Promise<{ restaurants: Restaurant[], total: number }> => {
   const res = await fetch(`${apiBase}/api/restaurants`);
@@ -139,12 +139,28 @@ export const getRestaurantById = async (id: string): Promise<Restaurant> => {
   return await res.json();
 };
 
-export const updateRestaurantAPI = async (id: string, data: Partial<Restaurant>) => {
-  const res = await fetch(`${apiBase}/api/restaurants/${id}`, { // <-- plural
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
+export const updateRestaurantAPI = async (id: string, data: Partial<Restaurant>, imageFile?: File) => {
+  let res;
+  if (imageFile) {
+    const formData = new FormData();
+    // Agrega todos los campos del restaurante al FormData
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
+      }
+    });
+    formData.append('mainImage', imageFile); // El backend espera 'mainImage' como archivo
+    res = await fetch(`${apiBase}/api/restaurants/${id}`, {
+      method: 'PUT',
+      body: formData,
+    });
+  } else {
+    res = await fetch(`${apiBase}/api/restaurants/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  }
   if (!res.ok) throw new Error('Error al actualizar restaurante');
   return await res.json();
 };

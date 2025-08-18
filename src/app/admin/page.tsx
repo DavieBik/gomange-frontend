@@ -5,7 +5,7 @@ import AdminDashboard from '@/components/admin/AdminDashboard';
 
 export default function AdminPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="text-center py-20 text-lg font-semibold">Logging in...</div>}>
       <AdminDashboard />
     </Suspense>
   );

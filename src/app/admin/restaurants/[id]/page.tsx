@@ -39,9 +39,43 @@ export default function EditRestaurantPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Prepara los datos para el backend
+    // Si hay archivo, usa FormData
+    if (imageFile) {
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, value]) => {
+        if (key === 'tags' || key === 'metaKeywords') {
+          formData.append(key, Array.isArray(value) ? value.join(',') : '');
+        } else if (key === 'openingHours') {
+          formData.append(key, JSON.stringify(value));
+        } else if (key === 'Image_URL') {
+          formData.append('imageUrl', value as string);
+        } else if (typeof value === 'boolean') {
+          formData.append(key, value ? 'true' : 'false');
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, value as string);
+        }
+      });
+      formData.append('mainImage', imageFile);
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
+          method: 'PUT',
+          body: formData,
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const result = await response.json();
+        setShowModal(true);
+      } catch (err) {
+        alert(`Error updating restaurant: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Si solo usas URL, envía JSON
     const dataToSend = {
       ...form,
+      imageUrl: form.Image_URL || '',
       openingHours: typeof form.openingHours === 'object' ? form.openingHours : {},
       tags: Array.isArray(form.tags) ? form.tags : [],
       metaKeywords: Array.isArray(form.metaKeywords) ? form.metaKeywords : [],

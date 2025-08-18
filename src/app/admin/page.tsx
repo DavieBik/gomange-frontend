@@ -1,7 +1,12 @@
 'use client';
 
-import AdminDashboard from '../../components/admin/AdminDashboard';
+import { Suspense } from 'react';
+import AdminDashboard from '@/components/admin/AdminDashboard';
 
 export default function AdminPage() {
-  return <AdminDashboard />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AdminDashboard />
+    </Suspense>
+  );
 }

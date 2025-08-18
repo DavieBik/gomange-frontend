@@ -13,23 +13,23 @@ function validatePassword(password: string) {
   return password.length >= 6;
 }
 
-async function login(email: string, password: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+async function register(email: string, password: string) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
   if (!res.ok) {
     const data = await res.json();
-    throw new Error(data.error || 'Login failed');
+    throw new Error(data.error || 'Registration failed');
   }
-  return res.json(); // { token, role }
+  return res.json();
 }
 
-export default function LoginPage() {
-  const [form, setForm] = useState({ email: '', password: '' });
+export default function RegisterPage() {
   const [error, setError] = useState('');
-  const [showPopup, setShowPopup] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [form, setForm] = useState({ email: '', password: '' });
   const router = useRouter();
 
   // Validations
@@ -45,28 +45,23 @@ export default function LoginPage() {
   const isValid =
     validateEmail(form.email) && validatePassword(form.password);
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleRegister = async (email: string, password: string) => {
     setError('');
     try {
-      const { token, role } = await login(email, password);
-      localStorage.setItem('token', token);
-      localStorage.setItem('role', role);
-      setShowPopup(true);
+      await register(email, password);
+      setShowSuccess(true);
       setTimeout(() => {
-        setShowPopup(false);
+        setShowSuccess(false);
         router.push('/');
       }, 1500);
     } catch (err: any) {
       setError(err.message);
-      setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 2000);
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen w-full">
       <div className="flex flex-col md:flex-row bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-6xl min-h-[500px]">
-        {/* Right: Side image */}
         <div className="hidden md:block md:w-1/2 relative min-h-[500px] order-2 md:order-1">
           <Image
             src="/placeholder/restaurants-1.png"
@@ -77,7 +72,6 @@ export default function LoginPage() {
             priority={false}
           />
         </div>
-        {/* Left: Logo and form */}
         <div className="flex flex-col items-center justify-center p-10 md:w-1/2 w-full order-1 md:order-2">
           <Image
             src="/images/logo-1.png"
@@ -91,10 +85,10 @@ export default function LoginPage() {
             className="w-full max-w-sm"
             onSubmit={e => {
               e.preventDefault();
-              handleLogin(form.email, form.password);
+              handleRegister(form.email, form.password);
             }}
           >
-            <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
             <input
               type="email"
               className="w-full p-3 border rounded mb-1"
@@ -111,7 +105,7 @@ export default function LoginPage() {
             <input
               type="password"
               className="w-full p-3 border rounded mb-1"
-              placeholder="Password"
+              placeholder="Password (min 6 chars)"
               value={form.password}
               onChange={e =>
                 setForm(f => ({ ...f, password: e.target.value }))
@@ -128,37 +122,26 @@ export default function LoginPage() {
               }`}
               disabled={!isValid}
             >
-              Sign In
+              Create Account
             </button>
+            {error && <div className="text-red-600 mt-4">{error}</div>}
           </form>
           <div className="mt-8 flex flex-col items-center gap-2 w-full">
             <span className="text-sm text-gray-600">
-              Not registered?{' '}
-              <Link href="/auth/register" className="text-primary-600 font-semibold hover:underline">
-                Create an account
+              Already registered?{' '}
+              <Link href="/auth/login" className="text-primary-600 font-semibold hover:underline">
+                Go to login
               </Link>
             </span>
-            <Link href="/auth/forgot" className="text-sm text-primary-600 hover:underline">
-              Forgot your password or username?
-            </Link>
           </div>
         </div>
       </div>
-      {/* Popup for error or success */}
-      {showPopup && (
+      {/* Success Modal */}
+      {showSuccess && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            {error ? (
-              <>
-                <h3 className="text-xl font-bold mb-2 text-red-600">Login failed</h3>
-                <p className="text-sm text-gray-700">{error}</p>
-              </>
-            ) : (
-              <>
-                <h3 className="text-xl font-bold mb-2 text-green-600">Login successful!</h3>
-                <p className="text-sm text-gray-700">Redirecting to home...</p>
-              </>
-            )}
+            <h3 className="text-2xl font-bold mb-4 text-green-600">Registration successful!</h3>
+            <p className="mb-2">Redirecting to home...</p>
           </div>
         </div>
       )}

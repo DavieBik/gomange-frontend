@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 
-interface AuthFormProps {
+export interface AuthFormProps {
   title: string;
   buttonText: string;
-  onSubmit: (email: string, password: string) => Promise<void>;
+  onSubmit: (email: string, password: string) => void;
   error?: string;
+  success?: string; // <-- agrega esta línea
 }
 
-export default function AuthForm({ title, buttonText, onSubmit, error }: AuthFormProps) {
+export default function AuthForm({ title, buttonText, onSubmit, error, success }: AuthFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -44,7 +45,8 @@ export default function AuthForm({ title, buttonText, onSubmit, error }: AuthFor
       >
         {buttonText}
       </button>
-      {error && <div className="text-red-600 text-center font-semibold">{error}</div>}
+      {error && <div className="text-red-600 mt-4">{error}</div>}
+      {success && <div className="text-green-600 mt-4">{success}</div>}
     </form>
   );
 }

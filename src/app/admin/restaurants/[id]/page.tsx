@@ -12,93 +12,74 @@ export default function EditRestaurantPage() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (id) {
-      console.log('[Edit] Fetching restaurant by id:', id);
-      getRestaurantById(id as string).then(data => {
-        console.log('[Edit] Fetched restaurant data:', data);
-        setForm(data);
-      });
+      getRestaurantById(id as string).then(data => setForm(data));
     }
   }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    console.log('[Edit] Field changed:', e.target.name, e.target.value);
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      console.log('[Edit] Image file selected:', e.target.files[0]);
       setImageFile(e.target.files[0]);
     }
+  };
+
+  const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setGalleryFiles(prev => [...prev, ...Array.from(files)]);
+    }
+  };
+
+  const handleArrayChange = (name: string, value: string) => {
+    setForm({ ...form, [name]: value.split(',').map(t => t.trim()).filter(Boolean) });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Si hay archivo, usa FormData
-    if (imageFile) {
-      const formData = new FormData();
-      Object.entries(form).forEach(([key, value]) => {
-        if (key === 'tags' || key === 'metaKeywords') {
-          formData.append(key, Array.isArray(value) ? value.join(',') : '');
-        } else if (key === 'openingHours') {
-          formData.append(key, JSON.stringify(value));
-        } else if (key === 'Image_URL') {
-          formData.append('imageUrl', value as string);
-        } else if (typeof value === 'boolean') {
-          formData.append(key, value ? 'true' : 'false');
-        } else if (value !== undefined && value !== null) {
-          formData.append(key, value as string);
-        }
-      });
-      formData.append('mainImage', imageFile);
-
-      try {
-        const response = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
-          method: 'PUT',
-          body: formData,
-        });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const result = await response.json();
-        setShowModal(true);
-      } catch (err) {
-        alert(`Error updating restaurant: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    const formData = new FormData();
+    Object.entries(form).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        formData.append(key, value.join(','));
+      } else if (typeof value === 'object' && value !== null) {
+        formData.append(key, JSON.stringify(value));
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, value as string);
       }
-      setLoading(false);
-      return;
+    });
+    if (imageFile) formData.append('mainImage', imageFile);
+    if (galleryFiles && galleryFiles.length > 0) {
+      galleryFiles.forEach(file => formData.append('galleryImages', file));
     }
-
-    // Si solo usas URL, envía JSON
-    const dataToSend = {
-      ...form,
-      imageUrl: form.Image_URL || '',
-      openingHours: typeof form.openingHours === 'object' ? form.openingHours : {},
-      tags: Array.isArray(form.tags) ? form.tags : [],
-      metaKeywords: Array.isArray(form.metaKeywords) ? form.metaKeywords : [],
-      lgbtqFriendly: !!form.lgbtqFriendly,
-    };
 
     try {
       const response = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend),
+        body: formData,
       });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const result = await response.json();
+      await response.json();
       setShowModal(true);
     } catch (err) {
-      alert(`Error updating restaurant: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Error updating restaurant:', err);
+      if (err instanceof Error) {
+        alert(`Error updating restaurant: ${err.message}`);
+      } else {
+        alert('Error updating restaurant: Unknown error');
+      }
     }
     setLoading(false);
   };
 
   if (!form || !form.name) {
-    console.log('[Edit] Loading restaurant data...');
     return <div className="p-8">Loading...</div>;
   }
 
@@ -108,7 +89,6 @@ export default function EditRestaurantPage() {
         type="button"
         className="btn-secondary btn-xs flex items-center gap-1 mb-4"
         onClick={() => {
-          console.log('[Edit] Navigating back to /admin');
           router.push('/admin');
           router.refresh();
         }}
@@ -131,8 +111,8 @@ export default function EditRestaurantPage() {
           <input name="streetAddress" value={form.streetAddress || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
         </div>
         <div>
-          <label className="block mb-1">City</label>
-          <input name="city" value={form.city || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          <label className="block mb-1">District</label>
+          <input name="district" value={form.district || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
         </div>
         <div>
           <label className="block mb-1">Cuisine</label>
@@ -155,111 +135,159 @@ export default function EditRestaurantPage() {
           <input name="website" value={form.website || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
         </div>
         <div>
+          <label className="block mb-1">Email Address</label>
+          <input name="email" value={form.email || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+        </div>
+        <div>
           <label className="block mb-1">Phone</label>
           <input name="phone" value={form.phone || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+        </div>
+        <div>
+          <label className="block mb-1">Phone (Standard Format)</label>
+          <input name="phoneStandard" value={form.phoneStandard || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+        </div>
+        <div>
+          <label className="block mb-1">Google Maps URL</label>
+          <input name="gmbUrl" value={form.gmbUrl || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+        </div>
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <label className="block mb-1">Latitude</label>
+            <input name="latitude" type="number" value={form.latitude || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          </div>
+          <div className="flex-1">
+            <label className="block mb-1">Longitude</label>
+            <input name="longitude" type="number" value={form.longitude || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          </div>
+        </div>
+        <div>
+          <label className="block mb-1">Menu Link</label>
+          <input name="menuLink" value={form.menuLink || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+        </div>
+        <div>
+          <label className="block mb-1">Crowd</label>
+          <input name="crowd" value={form.crowd || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" placeholder="Local, expat, turista, etc." />
+        </div>
+        <div>
+          <label className="block mb-1">Service Options (comma separated)</label>
+          <input
+            name="serviceOptions"
+            value={Array.isArray(form.serviceOptions) ? form.serviceOptions.join(', ') : ''}
+            onChange={e => handleArrayChange('serviceOptions', e.target.value)}
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Dine-in, Takeout, etc."
+          />
+        </div>
+        <div>
+          <label className="block mb-1">Amenities (comma separated)</label>
+          <input
+            name="amenities"
+            value={Array.isArray(form.amenities) ? form.amenities.join(', ') : ''}
+            onChange={e => handleArrayChange('amenities', e.target.value)}
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Wi-Fi, Parking, AC, etc."
+          />
+        </div>
+        <div>
+          <label className="block mb-1">Accessibility (comma separated)</label>
+          <input
+            name="accessibility"
+            value={Array.isArray(form.accessibility) ? form.accessibility.join(', ') : ''}
+            onChange={e => handleArrayChange('accessibility', e.target.value)}
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Wheelchair, Braille menu, etc."
+          />
+        </div>
+        <div>
+          <label className="block mb-1">Payment Methods (comma separated)</label>
+          <input
+            name="paymentMethods"
+            value={Array.isArray(form.paymentMethods) ? form.paymentMethods.join(', ') : ''}
+            onChange={e => handleArrayChange('paymentMethods', e.target.value)}
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Cash, Card, Mobile Money, etc."
+          />
+        </div>
+        <div>
+          <label className="block mb-1">Offerings (comma separated)</label>
+          <input
+            name="offerings"
+            value={Array.isArray(form.offerings) ? form.offerings.join(', ') : ''}
+            onChange={e => handleArrayChange('offerings', e.target.value)}
+            className="border px-3 py-2 rounded w-full"
+            placeholder="Desayuno, almuerzo, vegano, etc."
+          />
+        </div>
+        <div>
+          <label className="block mb-1">Owner / Chef's Note</label>
+          <textarea name="ownerNote" value={form.ownerNote || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" rows={2} />
+        </div>
+        <div>
+          <label className="block mb-1">Opening Hours (JSON)</label>
+          <input name="openingHours" value={typeof form.openingHours === 'string' ? form.openingHours : ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" placeholder='{"monday":"8-18",...}' />
+        </div>
+        <div>
+          <label className="block mb-1">Hours Summary</label>
+          <input name="hoursSummary" value={form.hoursSummary || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
         </div>
         <div>
           <label className="block mb-1">Tags (comma separated)</label>
           <input
             name="tags"
             value={Array.isArray(form.tags) ? form.tags.join(', ') : ''}
-            onChange={e => setForm({ ...form, tags: e.target.value.split(',').map(t => t.trim()) })}
+            onChange={e => handleArrayChange('tags', e.target.value)}
             className="border px-3 py-2 rounded w-full"
           />
         </div>
-
-        {/* Main Image Preview (actual) */}
-        {form.mainImage && form.mainImage.asset && !imageFile && (
-          <div className="mb-4">
-            <label className="block mb-1 font-semibold">Current Main Image</label>
-            <img
-              src={urlFor(form.mainImage).width(400).height(250).url()}
-              alt={form.name || 'Main Image'}
-              className="rounded-lg border w-full max-w-xs"
-            />
-          </div>
-        )}
-
-        {/* Preview of new image if selected */}
-        {imageFile && (
-          <div className="mb-4">
-            <label className="block mb-1 font-semibold">New Main Image Preview</label>
-            <img
-              src={URL.createObjectURL(imageFile)}
-              alt="New Main Image"
-              className="rounded-lg border w-full max-w-xs"
-            />
-          </div>
-        )}
-
+       
+        {/* Gallery Images (multiple, first image is cover) */}
         <div>
-          <label className="block mb-1">Main Image (URL)</label>
+          <label className="block mb-1">Gallery Images</label>
           <input
-            name="Image_URL"
-            value={form.Image_URL || ''}
-            onChange={handleChange}
-            className="border px-3 py-2 rounded w-full mb-2"
-            placeholder="Paste image URL here"
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleGalleryChange}
+            className="border px-3 py-2 rounded w-full"
           />
-          <label className="block mb-1 mt-2">Or upload image</label>
+          <small className="text-gray-500">
+            You can select one or more images for the gallery. The first will be the cover.
+          </small>
+          {galleryFiles.length > 0 && (
+            <div className="flex gap-2 mt-2 flex-wrap items-center">
+              {galleryFiles.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={URL.createObjectURL(img)}
+                  alt={`Gallery ${idx + 1}`}
+                  className="w-24 h-24 object-cover rounded border"
+                />
+              ))}
+              <button
+                type="button"
+                className="ml-2 text-xs text-gray-500 hover:text-primary-600 underline transition"
+                onClick={() => setGalleryFiles([])}
+              >
+                Clear gallery
+              </button>
+            </div>
+          )}
+        </div>
+        <div>
+          <label className="block mb-1">Main Image</label>
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
             className="border px-3 py-2 rounded w-full"
           />
-          <small className="text-gray-500">
-            You can paste an image URL or upload a file. If both are provided, the uploaded image will be used.
-          </small>
-        </div>
-        <div>
-          <label className="block mb-1">Opening Hours</label>
-          <input name="openingHours" value={form.openingHours || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
-        </div>
-        <div>
-          <label className="block mb-1">Facebook URL</label>
-          <input name="facebook" value={form.facebook || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
-        </div>
-        <div>
-          <label className="block mb-1">Instagram URL</label>
-          <input name="instagram" value={form.instagram || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
-        </div>
-        <div>
-          <label className="block mb-1">Twitter URL</label>
-          <input name="twitter" value={form.twitter || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
-        </div>
-        <div>
-          <label className="block mb-1">YouTube URL</label>
-          <input name="youtube" value={form.youtube || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
-        </div>
-        <div>
-          <label className="block mb-1">Meta Description</label>
-          <input name="metaDescription" value={form.metaDescription || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
-        </div>
-        <div>
-          <label className="block mb-1">Meta Keywords (comma separated)</label>
-          <input
-            name="metaKeywords"
-            value={Array.isArray(form.metaKeywords) ? form.metaKeywords.join(', ') : ''}
-            onChange={e => setForm({ ...form, metaKeywords: e.target.value.split(',').map(t => t.trim()) })}
-            className="border px-3 py-2 rounded w-full"
-          />
-        </div>
-        <div>
-          <label className="block mb-1">UUID</label>
-          <input name="_id" value={form._id || ''} readOnly className="border px-3 py-2 rounded w-full bg-gray-100" />
-        </div>
-        <div>
-          <label className="block mb-1">LGBTQ+ Friendly</label>
-          <select
-            name="lgbtqFriendly"
-            value={form.lgbtqFriendly ? 'true' : 'false'}
-            onChange={e => setForm({ ...form, lgbtqFriendly: e.target.value === 'true' })}
-            className="border px-3 py-2 rounded w-full"
-          >
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-          </select>
+          {imageFile && (
+            <img
+              src={URL.createObjectURL(imageFile)}
+              alt="Main"
+              className="w-24 h-24 object-cover rounded border mt-2"
+            />
+          )}
         </div>
         <button
           type="submit"
@@ -279,7 +307,6 @@ export default function EditRestaurantPage() {
             <button
               className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 transition"
               onClick={() => {
-                console.log('[Edit] Go to restaurants button clicked, navigating to /admin?refresh=1');
                 router.push('/admin?refresh=1');
               }}
             >

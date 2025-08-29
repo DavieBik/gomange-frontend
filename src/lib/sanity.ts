@@ -139,17 +139,24 @@ export const getRestaurantById = async (id: string): Promise<Restaurant> => {
   return await res.json();
 };
 
-export const updateRestaurantAPI = async (id: string, data: Partial<Restaurant>, imageFile?: File) => {
+export const updateRestaurantAPI = async (
+  id: string,
+  data: Partial<Restaurant>,
+  imageFile?: File,
+  galleryFiles?: File[]
+) => {
   let res;
-  if (imageFile) {
+  if (imageFile || (galleryFiles && galleryFiles.length > 0)) {
     const formData = new FormData();
-    // Agrega todos los campos del restaurante al FormData
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         formData.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
       }
     });
-    formData.append('mainImage', imageFile); // El backend espera 'mainImage' como archivo
+    if (imageFile) formData.append('mainImage', imageFile);
+    if (galleryFiles && galleryFiles.length > 0) {
+      galleryFiles.forEach(file => formData.append('galleryImages', file));
+    }
     res = await fetch(`${apiBase}/api/restaurants/${id}`, {
       method: 'PUT',
       body: formData,
@@ -161,7 +168,7 @@ export const updateRestaurantAPI = async (id: string, data: Partial<Restaurant>,
       body: JSON.stringify(data),
     });
   }
-  if (!res.ok) throw new Error('Error al actualizar restaurante');
+  if (!res.ok) throw new Error('Error updating restaurant');
   return await res.json();
 };
 

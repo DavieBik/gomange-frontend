@@ -34,7 +34,7 @@ export namespace Sanity {
   slug: Slug
   neighbourhood?: string
   streetAddress?: string
-  city?: string
+  district?: string // Nuevo campo
   cuisine?: string
   priceRange?: string
   summary?: string
@@ -42,7 +42,7 @@ export namespace Sanity {
   website?: string
   phone?: string
   tags?: string[]
-  Image_URL?: string
+  mainImage?: Image
   galleryImages?: Array<Image>
   openingHours?: {
     monday?: string
@@ -53,12 +53,25 @@ export namespace Sanity {
     saturday?: string
     sunday?: string
   }
-  facebook?: string
-  instagram?: string
-  twitter?: string
-  youtube?: string
-  metaKeywords?: string[]
-  lgbtqFriendly: boolean
+  // Nuevos campos
+  gmbUrl?: string
+  latitude?: number
+  longitude?: number
+  menuLink?: string
+  email?: string
+  phoneStandard?: string
+  crowd?: string
+  serviceOptions?: string[]
+  amenities?: string[]
+  accessibility?: string[]
+  paymentMethods?: string[]
+  offerings?: string[]
+  ownerNote?: string
+  hoursSummary?: string
+  // Campos ocultos
+  whatsappNumber?: string
+  orderLink?: string
+  bookingLink?: string
 }
 
   interface Collection {

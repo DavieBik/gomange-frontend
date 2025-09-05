@@ -7,13 +7,11 @@ import type { Restaurant } from '@/types/sanity'
 import { getPlaceholderImage } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
-type RestaurantCardVariant = 'default' | 'featured' | 'traditional'
-
 type RestaurantCardProps = {
   restaurant: Restaurant
   children?: React.ReactNode
-  layout?: 'grid' | 'list'
-  variant?: RestaurantCardVariant
+  layout?: 'grid' | 'list' | 'carousel'
+  variant?: 'default' | 'featured' | 'traditional'
 }
 
 export default function RestaurantCard({
@@ -24,12 +22,10 @@ export default function RestaurantCard({
   const router = useRouter()
 
   let imgSrc = ''
-
   if (
     restaurant.mainImage?.asset &&
     (restaurant.mainImage.asset._ref || restaurant.mainImage.asset._id)
   ) {
-    // Solo usa urlFor si es un asset de Sanity
     const url = urlFor(restaurant.mainImage.asset).width(800).url()
     imgSrc = url || '/placeholder/default.jpg'
   } else if (restaurant.Image_URL) {
@@ -38,28 +34,6 @@ export default function RestaurantCard({
     imgSrc = getPlaceholderImage(restaurant.cuisine)
   } else {
     imgSrc = '/placeholder/default.jpg'
-  }
-
-  // Estilos dinámicos por variante
-  const variantStyles = {
-    default:
-      'bg-white rounded-2xl shadow-soft hover:shadow-hard overflow-hidden flex flex-col h-full transition-all duration-500 hover:-translate-y-2 hover:scale-105 group border border-gray-100',
-    featured:
-      'bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-xl rounded-2xl overflow-hidden flex flex-col h-full relative group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2',
-    traditional:
-      'bg-gradient-to-br from-secondary-500 to-secondary-600 text-white shadow-lg hover:shadow-xl rounded-2xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1',
-  }
-
-  const textClass = {
-    default: 'text-gray-600',
-    featured: 'text-white',
-    traditional: 'text-white',
-  }[variant]
-
-  const tagColors = {
-    default: 'bg-primary-100 text-primary-800',
-    featured: 'bg-white text-primary-700',
-    traditional: 'bg-secondary-500 text-white',
   }
 
   // Utilidad para mostrar la ubicación según ciudad/distrito
@@ -73,37 +47,28 @@ export default function RestaurantCard({
     return restaurant.neighbourhood
   }
 
-  // Normalizar tags: dividir por punto y coma si vienen juntas
+  // Normalizar tags
   const normalizedTags = restaurant.tags
     ? restaurant.tags.flatMap((tag: string) => tag.split(';').map((t: string) => t.trim()).filter(Boolean))
     : [];
+  const otherTags = normalizedTags;
 
   return (
     <Link
       href={`/restaurant/${restaurant._id}`}
-      className={`block ${variantStyles[variant]} ${layout === 'list' ? 'md:flex-row md:h-auto' : ''}`}
+      className="block bg-white rounded-2xl shadow-soft hover:shadow-lg overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] group border border-gray-100"
+      aria-label={`View details for ${restaurant.name}`}
     >
-      {/* Imagen */}
-      <div
-        className={`relative ${
-          layout === 'grid' 
-            ? 'aspect-[4/3]' 
-            : layout === 'list'
-            ? 'aspect-[4/3] md:aspect-[3/2] md:w-80 md:flex-shrink-0'
-            : 'aspect-[16/9] md:aspect-[4/3]'
-        }`}
-      >
+      {/* Imagen principal */}
+      <div className="relative aspect-[4/3] w-full bg-gray-100">
         <Image
           src={imgSrc}
           alt={restaurant.name || 'Restaurant image'}
           fill
-          className="object-cover transition-opacity duration-300"
+          className="object-cover rounded-2xl"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          onError={(e) => { (e.target as HTMLImageElement).src = getPlaceholderImage(restaurant.cuisine) }}
+          style={{ objectFit: 'cover' }}
         />
-        {variant === 'featured' && (
-          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
-        )}
         {!restaurant.mainImage?.asset && !restaurant.Image_URL && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
             <span className="text-white font-semibold px-3 py-1.5 rounded-md text-sm">
@@ -111,96 +76,60 @@ export default function RestaurantCard({
             </span>
           </div>
         )}
-        {/* Badge de precio flotante */}
-        {restaurant.priceRange && (
-          <div className="absolute top-3 right-3 z-10">
-            <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/90 text-primary-700 backdrop-blur-sm shadow-lg">
-              {restaurant.priceRange}
-            </span>
-          </div>
-        )}
+        {/* Precio destacado */}
+        <div className="absolute top-3 right-3 z-10">
+          <span className="px-4 py-2 rounded-xl text-sm font-bold bg-white text-primary-700 shadow-lg border border-primary-200"
+            style={{ letterSpacing: '0.5px' }}
+          >
+            {restaurant.priceRange || 'Precio no disponible'}
+          </span>
+        </div>
       </div>
       {/* Contenido */}
-      <div className={`p-4 flex-1 flex flex-col space-y-2 ${layout === 'list' ? 'md:p-6' : ''}`}>
-        {/* Título y ubicación */}
-        <div className={`space-y-1 ${layout === 'list' ? 'md:space-y-2' : ''}`}>
-          <h3
-            className={`font-bold ${layout === 'list' ? 'text-lg md:text-xl' : 'text-lg'} ${
-              variant === 'featured' ? 'text-white' : 'text-gray-900'
-            } leading-tight group-hover:text-primary transition-colors duration-300`}
-          >
-            {restaurant.name}
-          </h3>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <svg className={`w-3 h-3 ${variant === 'featured' ? 'text-primary-200' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-              </svg>
-              <p
-                className={`text-xs font-medium ${layout === 'list' ? 'md:text-sm' : ''} ${
-                  variant === 'featured' ? 'text-primary-100' : 'text-gray-600'
-                }`}
-              >
-                {getLocationDisplay(restaurant)}
-              </p>
-            </div>
-          </div>
+      <div className="p-4 flex-1 flex flex-col space-y-2">
+        {/* Nombre */}
+        <h3 className="font-bold text-lg text-gray-900 leading-tight group-hover:text-primary transition-colors duration-300">
+          {restaurant.name}
+        </h3>
+        {/* Ubicación (siempre muestra algo) */}
+        <div className="flex items-center gap-1">
+          <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+          </svg>
+          <p className="text-xs font-medium text-gray-600">
+            {getLocationDisplay(restaurant) || 'Ubicación no disponible'}
+          </p>
         </div>
-
-        {/* Mostrar resumen corto si existe */}
-        {restaurant.summary && (
-          <p className={`text-sm font-medium ${textClass} line-clamp-2`}>{restaurant.summary}</p>
+        {/* Precio (siempre muestra algo) */}
+        <div className="mt-1">
+          <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-secondary-100 text-primary-700 shadow">
+            {restaurant.priceRange || 'Precio no disponible'}
+          </span>
+        </div>
+        {/* Resumen */}
+        {layout !== 'carousel' && restaurant.summary && (
+          <p className="text-sm font-medium text-gray-600 line-clamp-2">{restaurant.summary}</p>
         )}
-
-        {restaurant.cuisine && (
-          <div className="flex items-center gap-1">
-            <svg className={`w-3 h-3 ${variant === 'featured' ? 'text-primary-200' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
-              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-            </svg>
-            <p
-              className={`text-xs font-medium capitalize ${
-                variant === 'featured' ? 'text-primary-100' : 'text-gray-500'
-              }`}
-            >
-              {restaurant.cuisine}
-            </p>
-          </div>
-        )}
-
-        {/* Tags mejoradas y clicables */}
-        {normalizedTags.length > 0 && (
-          <div className={`flex flex-wrap gap-3 mt-3`}> 
-            {normalizedTags.slice(0, layout === 'list' ? 3 : 4).map((tag: string, index: number) => (
-              <button
+        {/* Tags principales */}
+        {layout !== 'carousel' && otherTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {otherTags.slice(0, 5).map((tag: string, index: number) => (
+              <span
                 key={index}
-                type="button"
-                className={`text-xs font-semibold px-4 py-2 rounded-full transition-all duration-300 border border-primary-200 bg-white text-primary-700 hover:bg-primary-100 hover:scale-105 shadow-sm whitespace-nowrap`}
-                onClick={e => {
-                  e.stopPropagation();
-                  router.push(`/restaurants?tag=${encodeURIComponent(tag)}`)
-                }}
+                className="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 shadow-sm whitespace-nowrap"
               >
                 {tag}
-              </button>
+              </span>
             ))}
-            {normalizedTags.length > (layout === 'list' ? 3 : 4) && (
-              <span className={`text-xs font-medium px-3 py-2 rounded-full text-gray-500 whitespace-nowrap`}>
-                +{normalizedTags.length - (layout === 'list' ? 3 : 4)}
+            {otherTags.length > 5 && (
+              <span className="text-xs font-medium px-3 py-1 rounded-full text-gray-500 whitespace-nowrap">
+                +{otherTags.length - 5}
               </span>
             )}
           </div>
         )}
-
         {/* Footer compacto */}
-        <div className="mt-auto pt-3 flex items-center justify-between">
-          {restaurant.lgbtqFriendly && (
-            <span className="inline-flex items-center px-2 py-1 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-bold">
-              🌈
-            </span>
-          )}
-
-          {/* Botón para visitar el sitio web, evitando <a> dentro de <Link> */}
+        <div className="mt-auto pt-3 flex items-center justify-end">
           {restaurant.website && (
             <button
               type="button"
@@ -214,11 +143,8 @@ export default function RestaurantCard({
                   'noopener,noreferrer'
                 );
               }}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
-                variant === 'featured'
-                  ? 'bg-white/20 text-white hover:bg-white/30 hover:scale-105'
-                  : 'bg-secondary text-white hover:bg-secondary-600 hover:scale-105 shadow-sm hover:shadow-md'
-              }`}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-secondary text-white hover:bg-secondary-600 hover:scale-105 shadow-sm hover:shadow-md"
+              aria-label={`Visit ${restaurant.name} website`}
             >
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />

@@ -2,472 +2,488 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { urlFor } from '@/lib/sanity'
-import { getPlaceholderImage } from '@/lib/utils'
 import type { Restaurant } from '@/types/sanity'
-import { 
-  MapPinIcon, 
-  BuildingStorefrontIcon, 
-  CurrencyDollarIcon,
-  PhoneIcon,
-  GlobeAltIcon,
-  TagIcon,
-  PhotoIcon,
-  HeartIcon
-} from '@heroicons/react/24/solid'
+import { MapPinIcon, PhoneIcon, GlobeAltIcon, DocumentTextIcon, StarIcon, ClockIcon } from '@heroicons/react/24/solid'
+import AddReviewModal from './AddReviewModal'
 
 interface RestaurantDetailProps {
   restaurant: Restaurant
 }
 
+const placeholderImages = [
+  '/placeholder/indian.jpg',
+  '/placeholder/african.jpg',
+  '/placeholder/afro-fusion.jpg',
+  '/placeholder/asian.jpg',
+  '/placeholder/bar.jpg',
+  '/placeholder/barbecue.jpg',
+  '/placeholder/burger.jpg',
+  '/placeholder/cafe.jpg',
+  '/placeholder/fast-food.jpg',
+  '/placeholder/fine-dining.jpg',
+  '/placeholder/food-truck.jpg',
+  '/placeholder/italian.jpg',
+  '/placeholder/mexican.jpg',
+  '/placeholder/pizza.jpg',
+  '/placeholder/sushi.jpg',
+  '/placeholder/vegan.jpg',
+  '/placeholder/pizza.jpg',
+  '/placeholder/sushi.jpg',
+  '/placeholder/vegan.jpg',
+  '/placeholder/vegetarian.jpg',
+  '/placeholder/food-stall.jpg'
+]
+const mainPlaceholder = '/placeholder/restaurant-main.jpg'
+
 export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) {
-  // Unified color for all icons
-  const iconColorClass = "bg-gradient-to-br from-red-400 to-red-600"
-
-  // Initialize with available image immediately to avoid hydration issues
-  const getInitialImage = () => {
-    if (restaurant.mainImage?.asset) {
-      return urlFor(restaurant.mainImage).width(800).height(600).url()
-    } else if (restaurant.Image_URL) {
-      return restaurant.Image_URL
-    }
-    return ''
-  }
-
-  const [mainImgSrc, setMainImgSrc] = useState<string>(getInitialImage())
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-  const [isLoading, setIsLoading] = useState(!getInitialImage())
-  const [activeTab, setActiveTab] = useState<'about' | 'menu' | 'reviews' | 'hours'>('about')
+  const [tab, setTab] = useState<'about' | 'menu' | 'reviews' | 'hours'>('about')
+  const [alert, setAlert] = useState<string | null>(null)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [galleryImages, setGalleryImages] = useState<{ url: string }[]>([])
 
+
+      function getRandomPlaceholders(arr: string[], count: number) {
+  const shuffled = [...arr].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+  useEffect(() => {
+    const mainImgSanityUrl = restaurant.mainImage?.asset?._ref
+      ? urlFor(restaurant.mainImage).width(800).height(600).url()
+      : null;
+
+    const hasSanityImages =
+      restaurant.mainImage?.asset?._ref ||
+      (restaurant.galleryImages?.length &&
+        restaurant.galleryImages.some((img: { asset?: any }) => img.asset?._ref));
+
+    // Si NO hay imágenes de Sanity, SIEMPRE muestra los placeholders
+    if (!hasSanityImages) {
+      setGalleryImages([
+        { url: mainPlaceholder },
+        ...getRandomPlaceholders(placeholderImages, 3).map((url: string) => ({ url }))
+      ]);
+      setSelectedImageIndex(0);
+      return;
+    }
+
+    // Si hay imágenes de Sanity, muestra solo esas
+    const gallerySanityImages = restaurant.galleryImages?.length
+      ? restaurant.galleryImages
+          .map((img: { asset?: any; url?: string }) =>
+            img.asset
+              ? urlFor(img.asset).width(800).height(600).url()
+              : undefined
+          )
+          .filter((url: string | undefined) => url && url !== mainImgSanityUrl)
+      : [];
+
+    const images: { url: string }[] = [
+      ...(mainImgSanityUrl ? [{ url: mainImgSanityUrl }] : []),
+      ...gallerySanityImages.map((url: string) => ({ url }))
+    ];
+
+    setGalleryImages(images);
+    setSelectedImageIndex(0);
+  }, [restaurant]);
+
+  // Horarios
   const days = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
   const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
   const today = days[todayIdx]
-
-  // State for open/closed days in hours accordion
-  const [openDays, setOpenDays] = useState<Record<string, boolean>>(
-    Object.fromEntries(days.map(day => [day, day === today]))
-  )
-
-  const toggleDay = (day: string) => {
-    setOpenDays(prev => ({ ...prev, [day]: !prev[day] }))
+  const formatDayHours = (dayObj: any) => {
+    if (!dayObj) return 'No info'
+    if (dayObj.closed) return 'Closed'
+    if (dayObj.from && dayObj.to) return `${dayObj.from} - ${dayObj.to}`
+    return 'No info'
   }
 
-  useEffect(() => {
-    const loadMainImage = async () => {
-      try {
-        let imgSrc = ''
-        if (restaurant.mainImage?.asset) {
-          imgSrc = urlFor(restaurant.mainImage).width(800).height(600).url()
-        } else if (restaurant.Image_URL) {
-          imgSrc = restaurant.Image_URL
-        } else {
-          imgSrc = await getPlaceholderImage(restaurant.cuisine || 'default')
-        }
-        setMainImgSrc(imgSrc)
-      } catch (error) {
-        const fallback = await getPlaceholderImage('default')
-        setMainImgSrc(fallback)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    if (!getInitialImage()) {
-      loadMainImage()
-    }
-  }, [restaurant])
+  // WhatsApp link
+  const whatsappLink = restaurant.whatsappNumber
+    ? `https://wa.me/${restaurant.whatsappNumber.replace(/\D/g, '')}?text=Hi! I want to order or book at ${restaurant.name}`
+    : null
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  }
+  // Google Maps embed
+  const mapsEmbedUrl = restaurant.gmbUrl
+    ? `${restaurant.gmbUrl.replace('/maps/place/', '/maps/embed?pb=')}`
+    : restaurant.latitude && restaurant.longitude
+      ? `https://maps.google.com/maps?q=${restaurant.latitude},${restaurant.longitude}&z=15&output=embed`
+      : null
 
-  // Price formatting helpers
-  const formatPriceRange = (price: string | undefined): string => {
-    if (!price) return 'Standard pricing'
-    const lowerPrice = price.toLowerCase()
-    if (lowerPrice.includes('$') && !lowerPrice.includes('$$')) return 'Affordable meals'
-    if (lowerPrice.includes('$$$$') || lowerPrice.includes('expensive') || lowerPrice.includes('upscale')) return 'Upscale dining'
-    if (lowerPrice.includes('$$$') || lowerPrice.includes('moderate')) return 'Standard pricing'
-    if (lowerPrice.includes('varied') || lowerPrice.includes('range')) return 'Wide price range'
-    return 'Standard pricing'
+  // Handler para botones "Coming soon"
+  const handleSoon = (msg: string) => {
+    setAlert(msg)
+    setTimeout(() => setAlert(null), 2000)
   }
 
   return (
-    <motion.div
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-white"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      {/* Header */}
-      <div className="container mx-auto pt-8">
-        <button
-          type="button"
-          className="btn btn-secondary btn-xs flex items-center gap-1 mb-4"
-          onClick={() => window.history.back()}
-        >
-          <span className="text-base">←</span>
-          Back
-        </button>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-2 text-primary-800 text-center md:text-left drop-shadow">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      <div className="container mx-auto pt-8 px-2">
+        {/* Name and address */}
+        <h1 className="text-3xl md:text-4xl font-black mb-2 text-primary-800 text-center md:text-left drop-shadow">
           {restaurant.name}
         </h1>
-        <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-base md:text-lg font-medium text-gray-700 mb-4">
-          {restaurant.streetAddress && (
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.streetAddress)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-sm border border-gray-100 text-sm hover:shadow-md transition-shadow"
-            >
-              <MapPinIcon className="w-4 h-4 text-primary" />
-              {restaurant.streetAddress}
-            </a>
-          )}
-          {restaurant.phone && (
-            <a
-              href={`tel:${restaurant.phone}`}
-              className="flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-sm border border-gray-100 text-sm hover:shadow-md transition-shadow"
-            >
-              <PhoneIcon className="w-4 h-4 text-primary" />
-              {restaurant.phone}
-            </a>
-          )}
-          {restaurant.website && (
-            <a
-              href={restaurant.website.startsWith('http') ? restaurant.website : `https://${restaurant.website}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-sm border border-gray-100 text-sm hover:shadow-md transition-shadow"
-            >
-              <GlobeAltIcon className="w-4 h-4 text-primary" />
-              Website
-            </a>
-          )}
-          {restaurant.instagram && (
-            <a
-              href={restaurant.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-sm border border-gray-100 text-sm hover:shadow-md transition-shadow"
-            >
-              <PhotoIcon className="w-4 h-4 text-primary" />
-              Instagram
-            </a>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2 mb-6 justify-center md:justify-start">
-          {restaurant.neighbourhood && (
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.neighbourhood)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-2 py-1 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 text-xs hover:bg-primary/20 transition"
-            >
-              {restaurant.neighbourhood}
-            </a>
-          )}
-          {restaurant.cuisine && (
-            <a
-              href="#menu"
-              className="px-2 py-1 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 text-xs hover:bg-primary/20 transition"
-            >
-              {restaurant.cuisine}
-            </a>
-          )}
-          {restaurant.priceRange && (
-            <span
-              className="px-2 py-1 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 text-xs"
-            >
-              {formatPriceRange(restaurant.priceRange)}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Gallery Section */}
-      <section className="container mx-auto mb-10">
-        <div className="flex flex-col items-center">
-          <div className="relative w-full max-w-2xl h-56 md:h-80 rounded-2xl overflow-hidden shadow-lg mb-4 bg-gray-100 border border-gray-200">
-            {isLoading || !mainImgSrc ? (
-              <div className="w-full h-full bg-gray-300 animate-pulse" />
-            ) : (
-              <Image
-                src={
-                  restaurant.galleryImages &&
-                  restaurant.galleryImages[selectedImageIndex] &&
-                  restaurant.galleryImages[selectedImageIndex].asset
-                    ? urlFor(restaurant.galleryImages[selectedImageIndex]).width(800).height(450).url()
-                    : mainImgSrc
-                }
-                alt={restaurant.name}
-                fill
-                className="object-cover"
-                priority
-              />
-            )}
+        {restaurant.streetAddress && (
+          <div className="flex items-center gap-2 text-gray-700 mb-4 justify-center md:justify-start">
+            <MapPinIcon className="w-5 h-5 text-primary" />
+            <span className="font-medium">{restaurant.streetAddress}</span>
           </div>
-          {restaurant.galleryImages && restaurant.galleryImages.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {restaurant.galleryImages?.map((image: any, index: number) => (
-                <button
-                  key={index}
-                  className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 ${
-                    selectedImageIndex === index
-                      ? 'border-primary shadow-lg scale-105'
-                      : 'border-gray-200 hover:border-gray-300'
-                  } transition-all duration-300`}
-                  onClick={() => setSelectedImageIndex(index)}
-                  type="button"
-                >
+        )}
+
+        {/* Main layout: info + sidebar */}
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Main info */}
+          <div className="flex-1 min-w-0">
+            {/* Gallery */}
+            <div className="w-full max-w-2xl mx-auto mb-4">
+              <div className="flex gap-2 overflow-x-auto">
+                {galleryImages.map((img: { url: string }, idx: number) =>
+                  idx !== selectedImageIndex ? (
+                    <button
+                      key={idx}
+                      className={`relative aspect-[4/3] w-40 md:w-56 rounded-xl overflow-hidden border-2 ${
+                        selectedImageIndex === idx
+                          ? 'border-primary shadow-lg scale-105'
+                          : 'border-gray-200 hover:border-gray-300'
+                      } transition-all duration-300`}
+                      onClick={() => setSelectedImageIndex(idx)}
+                      type="button"
+                    >
+                      <Image
+                        src={img.url}
+                        alt={`${restaurant.name} gallery ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 50vw, 33vw"
+                      />
+                    </button>
+                  ) : null
+                )}
+              </div>
+              {/* Imagen principal grande */}
+              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-lg mt-4 border border-gray-200">
+                {galleryImages.length > 0 && galleryImages[selectedImageIndex] ? (
                   <Image
-                    src={
-                      image.asset
-                        ? urlFor(image).width(100).height(100).url()
-                        : mainImgSrc
-                    }
-                    alt={`${restaurant.name} thumbnail ${index + 1}`}
+                    src={galleryImages[selectedImageIndex].url}
+                    alt={restaurant.name}
                     fill
                     className="object-cover"
+                    priority
                   />
-                </button>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                    No image available
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Tabs as chips */}
+            <div className="flex gap-6 mt-6 mb-6 justify-center md:justify-start flex-wrap">
+              {['about', 'menu', 'reviews', 'hours'].map(tabKey => (
+                <div
+                  key={tabKey}
+                  className={`pb-2 cursor-pointer font-semibold text-base transition-colors duration-150
+                    ${tab === tabKey
+                      ? 'border-b-2 border-primary-600 text-primary-800'
+                      : 'text-gray-500 hover:text-primary-600'
+                    }
+                  `}
+                  onClick={() => setTab(tabKey as typeof tab)}
+                  role="tab"
+                  aria-selected={tab === tabKey}
+                  tabIndex={0}
+                >
+                  {tabKey.charAt(0).toUpperCase() + tabKey.slice(1)}
+                </div>
               ))}
             </div>
-          )}
-        </div>
-      </section>
 
-      {/* Main Content Grid */}
-      <div className="container mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        {/* Tabs & Content */}
-        <div className="md:col-span-2">
-          {/* Tabs - horizontal bar, underline, responsive */}
-          <div className="flex border-b border-gray-200 mb-8 overflow-x-auto">
-            {[
-              { key: 'about', label: 'About', color: 'text-primary-600', underline: 'border-primary-600' },
-              { key: 'menu', label: 'Menu', color: 'text-secondary-500', underline: 'border-secondary-500' },
-              { key: 'reviews', label: 'Reviews', color: 'text-accent-500', underline: 'border-accent-500' },
-              { key: 'hours', label: 'Hours', color: 'text-secondary-500', underline: 'border-secondary-500' }
-            ].map(tab => (
-              <button
-                key={tab.key}
-                className={`
-                  whitespace-nowrap px-4 py-3 font-semibold text-base focus:outline-none transition-all
-                  ${activeTab === tab.key
-                    ? `${tab.color} border-b-4 ${tab.underline} bg-white`
-                    : 'text-gray-500 hover:text-primary-600 border-b-4 border-transparent bg-transparent'
-                  }
-                `}
-                style={{ minWidth: 100 }}
-                onClick={() => setActiveTab(tab.key as typeof activeTab)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          {/* Tab Content */}
-          <div>
-            {activeTab === 'about' && (
-              <section className="bg-white rounded-2xl p-8 shadow-card border border-gray-100 mb-8">
-                <h2 className="text-2xl font-bold text-primary mb-4">About This Restaurant</h2>
-                {restaurant.description && (
-                  <div className="text-gray-600 leading-relaxed mb-8">
-                    {restaurant.description.split('\n').map((paragraph: string, index: number) => (
-                      <p key={index} className="mb-4 last:mb-0">{paragraph}</p>
+            {/* Tab content */}
+            <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6 mb-8">
+              {tab === 'about' && (
+                <>
+                  {/* Google Maps */}
+                  {mapsEmbedUrl && (
+                    <div className="mb-6 rounded-xl overflow-hidden border border-gray-200 shadow">
+                      <iframe
+                        src={mapsEmbedUrl}
+                        width="100%"
+                        height="220"
+                        style={{ border: 0 }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  )}
+                  {/* Info chips */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {restaurant.neighbourhood && (
+                      <span className="px-2 py-1 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 text-xs">
+                        {restaurant.neighbourhood}
+                      </span>
+                    )}
+                    {restaurant.district && (
+                      <span className="px-2 py-1 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 text-xs">
+                        {restaurant.district}
+                      </span>
+                    )}
+                    {restaurant.cuisine && (
+                      <span className="px-2 py-1 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 text-xs">
+                        {restaurant.cuisine}
+                      </span>
+                    )}
+                    {restaurant.priceRange && (
+                      <span className="px-2 py-1 bg-white text-primary font-bold rounded-xl border border-primary/30 text-xs shadow">
+                        {restaurant.priceRange}
+                      </span>
+                    )}
+                  </div>
+                  {/* Summary & Description */}
+                  {restaurant.summary && (
+                    <p className="text-gray-700 text-base mb-4">{restaurant.summary}</p>
+                  )}
+                  {restaurant.description && (
+                    <div className="text-gray-600 leading-relaxed mb-8">
+                      {restaurant.description.split('\n').map((paragraph: string, index: number) => (
+                        <p key={index} className="mb-4 last:mb-0">{paragraph}</p>
+                      ))}
+                    </div>
+                  )}
+                  {/* Features */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {restaurant.tags?.map((tag: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 text-xs font-semibold shadow-sm">
+                        {tag}
+                      </span>
+                    ))}
+                    {restaurant.amenities?.map((amenity: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1 rounded-full bg-primary-50 text-primary-700 border border-primary-100 text-xs font-semibold shadow-sm">
+                        {amenity}
+                      </span>
+                    ))}
+                    {restaurant.accessibility?.map((item: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1 rounded-full bg-secondary-50 text-secondary-700 border border-secondary-100 text-xs font-semibold shadow-sm">
+                        {item}
+                      </span>
+                    ))}
+                    {restaurant.paymentMethods?.map((method: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1 rounded-full bg-accent-50 text-accent-700 border border-accent-100 text-xs font-semibold shadow-sm">
+                        {method}
+                      </span>
+                    ))}
+                    {restaurant.offerings?.map((offering: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1 rounded-full bg-primary-100 text-primary-700 border border-primary-200 text-xs font-semibold shadow-sm">
+                        {offering}
+                      </span>
+                    ))}
+                    {restaurant.crowd && (
+                      <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 text-xs font-semibold shadow-sm">
+                        {restaurant.crowd}
+                      </span>
+                    )}
+                    {restaurant.serviceOptions?.map((option: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1 rounded-full bg-primary-50 text-primary-700 border border-primary-100 text-xs font-semibold shadow-sm">
+                        {option}
+                      </span>
                     ))}
                   </div>
-                )}
-                {restaurant.streetAddress && (
-                  <div className="mt-8">
-                    <iframe
-                      title="Google Maps"
-                      src={`https://www.google.com/maps?q=${encodeURIComponent(restaurant.streetAddress)}&output=embed`}
-                      width="100%"
-                      height="300"
-                      style={{ border: 0, borderRadius: '12px' }}
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  </div>
-                )}
-              </section>
-            )}
-            {activeTab === 'menu' && (
-              <section className="bg-white rounded-2xl p-8 shadow-card border border-gray-100 mb-8 flex flex-col items-center">
-                <h2 className="text-2xl font-bold text-secondary mb-4">Menu</h2>
-                <div className="text-gray-600 text-base text-center">
-                  <PhotoIcon className="w-8 h-8 text-secondary mx-auto mb-2" />
-                  <p>The menu will be available soon. You can upload a photo or add items from the admin panel.</p>
-                </div>
-              </section>
-            )}
-            {activeTab === 'reviews' && (
-              <section className="bg-white rounded-2xl p-8 shadow-card border border-gray-100 mb-8 flex flex-col items-center">
-                <h2 className="text-2xl font-bold text-accent mb-4">Reviews</h2>
-                <div className="text-gray-600 text-base text-center">
-                  <HeartIcon className="w-8 h-8 text-accent mx-auto mb-2" />
-                  <p>Reviews will be available soon.</p>
-                </div>
-              </section>
-            )}
-            {activeTab === 'hours' && (
-              <section className="bg-white rounded-2xl p-8 shadow-card border border-gray-100 mb-8 flex flex-col items-center">
-                <h2 className="text-2xl font-bold text-secondary mb-6">Hours</h2>
-                <div className="w-full max-w-md mx-auto flex flex-col gap-3">
-                  {days.map(day => {
-                    const isCurrentDay = day === today
-                    const rawHours = restaurant.openingHours?.[day] || 'Closed'
-                    const hoursList = rawHours === 'Closed'
-                      ? []
-                      : rawHours.split(';').map((h: string) => h.trim()).filter(Boolean)
-
-                    return (
-                      <div key={day} className="rounded-lg border bg-gray-50 border-gray-200">
-                        <button
-                          className={`w-full flex items-center justify-between px-5 py-4 rounded-lg font-semibold text-base transition-all
-                            ${isCurrentDay
-                              ? 'bg-green-100 text-green-800 border-green-400'
-                              : 'text-gray-700'
-                            }`}
-                          onClick={() => toggleDay(day)}
-                          aria-expanded={openDays[day]}
-                        >
-                          <span>
-                            {day.charAt(0).toUpperCase() + day.slice(1)}
-                          </span>
-                          <span>
-                            {rawHours === 'Closed'
-                              ? <span className="text-red-500 font-bold">Closed</span>
-                              : <span className="font-bold">{isCurrentDay ? 'Today' : ''}</span>
-                            }
-                            <svg className={`w-5 h-5 ml-2 transition-transform ${openDays[day] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </span>
-                        </button>
-                        {openDays[day] && (
-                          <div className="px-5 pb-4">
-                            {rawHours === 'Closed' ? (
-                              <span className="text-red-500">This day is closed.</span>
+                  {/* Owner Note */}
+                  {restaurant.ownerNote && (
+                    <div className="bg-primary-50 border-l-4 border-primary-400 p-4 rounded mb-6">
+                      <span className="font-semibold text-primary-700">Chef/Owner's Note:</span>
+                      <p className="text-primary-900 mt-2">{restaurant.ownerNote}</p>
+                    </div>
+                  )}
+                </>
+              )}
+              {tab === 'menu' && (
+                <div className="flex flex-col items-center justify-center min-h-[180px] w-full">
+                  {restaurant.menuLink && (
+                    <a
+                      href={restaurant.menuLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block px-6 py-3 rounded-full bg-secondary-600 text-white font-semibold shadow hover:bg-secondary-700 transition mb-4"
+                    >
+                      View Full Menu
+                    </a>
+                  )}
+                  {Array.isArray(restaurant.menu) && restaurant.menu.length > 0 ? (
+                    <div className="w-full">
+                      {restaurant.menu.map((section: any, idx: number) => (
+                        <div key={section._key || idx} className="mb-6">
+                          <h4 className="text-lg font-bold text-primary-700 mb-2">{section.section}</h4>
+                          <div className="grid gap-4">
+                            {Array.isArray(section.items) && section.items.length > 0 ? (
+                              section.items.map((item: any) => (
+                                <div key={item._key} className="flex items-center gap-4 bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm">
+                                  {item.image?.asset?._ref && (
+                                    <Image
+                                      src={urlFor(item.image).width(80).height(80).url()}
+                                      alt={item.name}
+                                      width={80}
+                                      height={80}
+                                      className="rounded-lg object-cover border"
+                                    />
+                                  )}
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-primary-800">{item.name}</div>
+                                    {item.description && (
+                                      <div className="text-gray-600 text-sm">{item.description}</div>
+                                    )}
+                                  </div>
+                                  <div className="font-bold text-secondary-700 text-lg whitespace-nowrap">
+                                    {item.price ? `$${item.price}` : ''}
+                                  </div>
+                                </div>
+                              ))
                             ) : (
-                              <ul className="flex flex-col gap-2 mt-2 bg-green-100 rounded-lg p-2">
-                                {hoursList.map((h: string, idx: number) => (
-                                  <li
-                                    key={idx}
-                                    className="px-3 py-2 rounded shadow-sm font-semibold bg-green-200 text-green-900"
-                                  >
-                                    {h}
-                                  </li>
-                                ))}
-                              </ul>
+                              <div className="text-gray-400 italic">No items yet.</div>
                             )}
                           </div>
-                        )}
-                      </div>
-                    )
-                  })}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-base">Menu not available.</p>
+                  )}
                 </div>
-              </section>
-            )}
+              )}
+              {tab === 'reviews' && (
+                <div className="flex flex-col items-center justify-center min-h-[220px]">
+                  <button
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary-600 text-white font-bold shadow hover:bg-primary-700 transition text-lg mb-4"
+                    onClick={() => setShowReviewModal(true)}
+                  >
+                    + Add Review
+                  </button>
+                  {restaurant.reviews && restaurant.reviews.length > 0 ? (
+                    <div className="w-full max-w-md overflow-x-auto flex gap-4 pb-2 scrollbar-hide">
+                      {restaurant.reviews.map((review: any, idx: number) => (
+                        <div key={idx} className="min-w-[260px] bg-primary-50 border border-primary-200 rounded-lg p-4 flex-shrink-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            {[1,2,3,4,5].map(val => (
+                              <StarIcon
+                                key={val}
+                                className={`w-5 h-5 ${val <= review.rating ? 'text-secondary-400' : 'text-gray-300'}`}
+                              />
+                            ))}
+                            <span className="ml-2 font-semibold text-primary-700">{review.author}</span>
+                          </div>
+                          <p className="text-gray-700">{review.comment}</p>
+                          <div className="text-xs text-gray-400 mt-1">{review.date ? new Date(review.date).toLocaleDateString() : ''}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-primary-50 border border-primary-200 rounded-lg p-6 w-full max-w-md text-center text-gray-600 mx-auto">
+                      <p className="mb-2 font-semibold">No reviews yet.</p>
+                      <p className="text-sm">Be the first to review this restaurant!</p>
+                    </div>
+                  )}
+                  {showReviewModal && (
+                    <AddReviewModal
+                      restaurantId={restaurant._id}
+                      onClose={() => setShowReviewModal(false)}
+                    />
+                  )}
+                </div>
+              )}
+              {tab === 'hours' && (
+                <section>
+                  <h2 className="text-lg font-bold text-secondary mb-2">Opening Hours</h2>
+                  {restaurant.openingHours ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {days.map(day => {
+                        const dayObj = restaurant.openingHours[day]
+                        const isToday = day === today
+                        return (
+                          <div key={day} className={`rounded-lg border px-4 py-3 ${isToday ? 'bg-green-50 border-green-400' : 'bg-gray-50 border-gray-200'}`}>
+                            <span className="font-semibold">{day.charAt(0).toUpperCase() + day.slice(1)}</span>
+                            <span className="block mt-1 text-sm">
+                              {formatDayHours(dayObj)}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No hours information available.</p>
+                  )}
+                  {restaurant.hoursSummary && (
+                    <div className="mt-4 text-gray-500 text-sm">{restaurant.hoursSummary}</div>
+                  )}
+                </section>
+              )}
+            </div>
           </div>
-        </div>
-        {/* Sidebar */}
-        <div className="space-y-8">
-          {/* Book & Order buttons */}
-          <section className="card flex flex-col items-center py-8 px-6">
-            <h3 className="text-xl font-bold text-primary-600 mb-6">Book & Order</h3>
-            <div className="flex flex-col gap-4 items-center">
-              {restaurant.phone && (
-                <a
-                  href={`https://wa.me/${restaurant.phone.replace(/\D/g, '')}?text=Hi! I want to order from ${restaurant.name}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary btn-md mx-auto text-base min-w-[180px] max-w-[220px]"
-                >
-                  Order via WhatsApp
-                </a>
-              )}
-              {(restaurant.phone || restaurant.website) && (
-                <a
-                  href={restaurant.phone ? `https://wa.me/${restaurant.phone.replace(/\D/g, '')}?text=Hi! I want to book a table at ${restaurant.name}` : restaurant.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary btn-md mx-auto text-base min-w-[180px] max-w-[220px]"
-                >
-                  Book Table
-                </a>
-              )}
+          {/* Sidebar */}
+          <aside className="w-full md:w-72 flex-shrink-0">
+            <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6 flex flex-col gap-4 sticky top-8">
+              <h3 className="text-lg font-bold text-primary-700 mb-2">Contact & Order</h3>
+              {/* Phone */}
               <button
-                className="btn btn-disabled btn-md mx-auto text-base min-w-[180px] max-w-[220px]"
-                disabled
+                className="btn btn-primary btn-md"
+                onClick={() =>
+                  restaurant.phone
+                    ? window.open(`tel:${restaurant.phone}`)
+                    : handleSoon('Coming soon')
+                }
               >
-                Order (coming soon)
+                {restaurant.phone ? 'Call' : 'Coming soon'}
+              </button>
+              {/* WhatsApp */}
+              <button
+                className="btn btn-secondary btn-md"
+                onClick={() =>
+                  whatsappLink
+                    ? window.open(whatsappLink, '_blank')
+                    : handleSoon('Coming soon')
+                }
+              >
+                {whatsappLink ? 'Order/Book by WhatsApp' : 'Coming soon'}
+              </button>
+              {/* Order Online */}
+              <button
+                className="btn btn-primary btn-md"
+                onClick={() =>
+                  restaurant.orderLink
+                    ? window.open(restaurant.orderLink, '_blank')
+                    : handleSoon('Coming soon')
+                }
+              >
+                {restaurant.orderLink ? 'Order Online' : 'Coming soon'}
+              </button>
+              {/* Website */}
+              <button
+                className="btn btn-accent btn-md"
+                onClick={() =>
+                  restaurant.website
+                    ? window.open(
+                        restaurant.website.startsWith('http')
+                          ? restaurant.website
+                          : `https://${restaurant.website}`,
+                        '_blank'
+                      )
+                    : handleSoon('Coming soon')
+                }
+              >
+                {restaurant.website ? 'Visit Website' : 'Coming soon'}
               </button>
             </div>
-          </section>
-          {/* Features & Specialties */}
-          <section className="card py-10 px-8">
-            <h2 className="text-xl font-bold text-primary-600 mb-6">Features & Specialties</h2>
-            <div className="flex flex-col gap-4">
-              {/* Amenities */}
-              {restaurant.amenities?.length ? restaurant.amenities.map((amenity: string, idx: number) => (
-                <span
-                  key={idx}
-                  className="flex items-center gap-3 px-5 py-3 bg-primary-50 text-primary-700 font-semibold rounded-full border border-primary-100 whitespace-nowrap shadow-sm"
-                >
-                  {amenity === 'Wi-Fi' && <PhotoIcon className="w-5 h-5 text-primary-600" />}
-                  {amenity === 'Parking' && <MapPinIcon className="w-5 h-5 text-primary-600" />}
-                  {amenity === 'AC' && <HeartIcon className="w-5 h-5 text-primary-600" />}
-                  {/* ...other icons... */}
-                  {amenity}
-                </span>
-              )) : <span className="text-gray-400">No amenities listed.</span>}
-
-              {/* Accessibility */}
-              {restaurant.accessibility?.length ? restaurant.accessibility.map((item: string, idx: number) => (
-                <span
-                  key={idx}
-                  className="flex items-center gap-3 px-5 py-3 bg-secondary-50 text-secondary-700 font-semibold rounded-full border border-secondary-100 whitespace-nowrap shadow-sm"
-                >
-                  {item === 'Wheelchair' && <HeartIcon className="w-5 h-5 text-secondary-600" />}
-                  {/* ...other icons... */}
-                  {item}
-                </span>
-              )) : <span className="text-gray-400">No accessibility features.</span>}
-
-              {/* Offerings */}
-              {restaurant.offerings?.length ? restaurant.offerings.map((offering: string, idx: number) => (
-                <span
-                  key={idx}
-                  className="flex items-center gap-3 px-5 py-3 bg-accent-50 text-accent-700 font-semibold rounded-full border border-accent-100 whitespace-nowrap shadow-sm"
-                >
-                  <TagIcon className="w-5 h-5 text-accent-600" />
-                  {offering}
-                </span>
-              )) : null}
-            </div>
-          </section>
-          {/* LGBTQ Friendly Badge */}
-          {restaurant.lgbtqFriendly && (
-            <div className="card-featured text-center p-6 mt-4">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <HeartIcon className="w-7 h-7 text-white" />
+            {/* Alert/Toast */}
+            {alert && (
+              <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-primary-700 text-white px-6 py-3 rounded-xl shadow-lg z-50 text-center font-semibold transition">
+                {alert}
               </div>
-              <h4 className="font-bold text-lg mb-1">LGBTQ+ Friendly</h4>
-              <p className="text-pink-100 text-sm">
-                This restaurant welcomes everyone
-              </p>
-            </div>
-          )}
+            )}
+          </aside>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }

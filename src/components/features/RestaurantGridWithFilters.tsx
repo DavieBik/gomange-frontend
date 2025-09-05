@@ -28,6 +28,7 @@ export default function RestaurantGridWithFilters({ restaurants }: { restaurants
   const [cuisine, setCuisine] = useState(initialCuisine)
   const [priceRange, setPriceRange] = useState(initialPriceRange)
   const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(false)
 
   // Función para mapear precios existentes a las nuevas categorías
   const mapPriceRange = (price: string | undefined): string => {
@@ -72,7 +73,25 @@ export default function RestaurantGridWithFilters({ restaurants }: { restaurants
     <div className="space-y-6">
       {/* Filtros */}
       <div className="bg-white rounded-xl shadow-card p-6">
-        <h3 className="text-lg font-semibold mb-4">Filter Restaurants</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Filter Restaurants</h3>
+          <button
+            type="button"
+            className="px-4 py-2 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold hover:bg-primary-100 transition"
+            onClick={() => {
+              setSearchTerm('');
+              setLocation('');
+              setCuisine('');
+              setPriceRange('');
+              setCurrentPage(1);
+            }}
+            disabled={
+              !searchTerm && !location && !cuisine && !priceRange
+            }
+          >
+            Clear all filters
+          </button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <input
             type="text"
@@ -129,6 +148,34 @@ export default function RestaurantGridWithFilters({ restaurants }: { restaurants
         </div>
       </div>
 
+      {/* Tags de búsqueda activa */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {searchTerm && (
+          <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+            {searchTerm}
+            <button onClick={() => setSearchTerm('')} className="ml-1 text-primary-500 hover:text-primary-700">×</button>
+          </span>
+        )}
+        {location && (
+          <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+            {location}
+            <button onClick={() => setLocation('')} className="ml-1 text-primary-500 hover:text-primary-700">×</button>
+          </span>
+        )}
+        {cuisine && (
+          <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+            {cuisine}
+            <button onClick={() => setCuisine('')} className="ml-1 text-primary-500 hover:text-primary-700">×</button>
+          </span>
+        )}
+        {priceRange && (
+          <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+            {priceRange}
+            <button onClick={() => setPriceRange('')} className="ml-1 text-primary-500 hover:text-primary-700">×</button>
+          </span>
+        )}
+      </div>
+
       {/* Resultados */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {currentRestaurants.length > 0 ? (
@@ -137,6 +184,9 @@ export default function RestaurantGridWithFilters({ restaurants }: { restaurants
           ))
         ) : (
           <div className="col-span-full text-center py-12">
+            <svg className="mx-auto h-12 w-12 text-gray-300 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h18M3 12h18M3 21h18" />
+            </svg>
             <h3 className="text-xl font-medium text-gray-900">No restaurants found</h3>
             <p className="mt-2 text-gray-500">Try adjusting your search or filter criteria</p>
             <button
@@ -170,6 +220,15 @@ export default function RestaurantGridWithFilters({ restaurants }: { restaurants
           <span> (filtered from <span className="font-medium">{restaurants.length}</span>)</span>
         )}
       </p>
+
+      {/* Loader */}
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin h-6 w-6 text-primary-600">
+            {/* loader svg */}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

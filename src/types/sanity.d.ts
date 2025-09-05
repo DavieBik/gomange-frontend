@@ -12,9 +12,15 @@ export namespace Sanity {
     current: string
   }
 
+  interface Asset {
+    _id: string
+    url: string
+    // Puedes agregar otros campos si los necesitas
+  }
+
   interface Image {
     _type: 'image'
-    asset: Reference
+    asset: Asset
     hotspot?: { x: number; y: number; width: number; height: number }
     crop?: { top: number; bottom: number; left: number; right: number }
   }

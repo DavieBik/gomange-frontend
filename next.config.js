@@ -19,6 +19,13 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@sanity/client'], 
   },
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.(png|jpg|jpeg|gif|svg)$/i,
+      type: 'asset/resource',
+    });
+    return config;
+  },
 };
 
 module.exports = nextConfig;

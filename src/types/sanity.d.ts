@@ -29,6 +29,13 @@ export namespace Sanity {
     _type: 'block'
   }
 
+type MenuItem = {
+  _key: string;
+  name: string;
+  description?: string;
+  price?: number; 
+  image?: any;
+};
 
  interface Restaurant {
   _id: string

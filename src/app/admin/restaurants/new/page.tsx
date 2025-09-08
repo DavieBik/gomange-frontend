@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/ui/Loading';
 import Select from 'react-select';
+import MenuEditor from '@/components/features/MenuEditor';
+import type { Sanity } from '@/types/sanity';
 
 const serviceOptionsList = [
   'Dine-in', 'Takeaway', 'Delivery', 'Drive-thru', 'Curbside Pickup',
@@ -52,11 +54,13 @@ export default function NewRestaurantPage() {
     tags: string[];
     galleryImages: string[];
     mainImage: string;
+    menu: any[];
     openingHours: {
       [key: string]: { from: string; to: string; closed: boolean };
     };
     latitude: number | null;
     longitude: number | null;
+    menuLink: string; 
   }>({
     name: '',
     neighbourhood: '',
@@ -77,6 +81,7 @@ export default function NewRestaurantPage() {
     tags: [],
     galleryImages: [],
     mainImage: '',
+    menu: [],
     openingHours: {
       monday: { from: '', to: '', closed: false },
       tuesday: { from: '', to: '', closed: false },
@@ -88,6 +93,7 @@ export default function NewRestaurantPage() {
     },
     latitude: null,
     longitude: null,
+    menuLink: '', 
   });
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -186,10 +192,41 @@ export default function NewRestaurantPage() {
     }
   };
 
+  // VALIDACIÓN EXTRA DEL MENÚ
+  function validateMenu(menu: any[]): string | null {
+    if (!Array.isArray(menu)) return 'Menu must be an array.';
+    if (menu.length === 0) return 'Menu must have at least one section.';
+    for (const section of menu) {
+      if (!section.section || typeof section.section !== 'string') {
+        return 'Each section must have a name.';
+      }
+      if (!Array.isArray(section.items) || section.items.length === 0) {
+        return `Section "${section.section}" must have at least one item.`;
+      }
+      for (const item of section.items) {
+        if (!item.name || typeof item.name !== 'string') {
+          return `Each item in "${section.section}" must have a name.`;
+        }
+        if (item.price === undefined || item.price === null || isNaN(item.price)) {
+          return `Each item in "${section.section}" must have a valid price.`;
+        }
+      }
+    }
+    return null;
+  }
+
   // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // --- VALIDACIÓN EXTRA DEL MENÚ ---
+    const error = validateMenu(form.menu || []);
+    if (error) {
+      alert(error);
+      setLoading(false);
+      return;
+    }
 
     const allowedFields = [
       'name', 'neighbourhood', 'streetAddress', 'district', 'cuisine', 'priceRange',
@@ -206,10 +243,12 @@ export default function NewRestaurantPage() {
       if (key === 'mainImage' || key === 'galleryImages') return;
       if (key === 'openingHours') {
         formData.append(key, JSON.stringify(value));
+      } else if (key === 'menu' && Array.isArray(value)) {
+        formData.append('menu', JSON.stringify(value)); // <-- ENVÍA COMO JSON
       } else if (Array.isArray(value) && value.length > 0) {
         formData.append(key, value.join(','));
       } else if (typeof value === 'object' && value !== null) {
-        // No serialices otros objetos, solo openingHours
+        // No serialices otros objetos, solo openingHours y menu
       } else if (value !== undefined && value !== null && value !== '') {
         formData.append(key, value as string);
       }
@@ -724,6 +763,49 @@ export default function NewRestaurantPage() {
             ))}
           </div>
         </div>
+
+     {/* --- MENU SECTION --- */}
+<div className="mt-10">
+  <h3 className="text-lg font-bold mb-2 text-primary-700">Menu</h3>
+  <label className="block mb-1 font-medium">Menu Link</label>
+  <input
+    name="menuLink"
+    value={form.menuLink || ''}
+    onChange={handleChange}
+    className="border px-3 py-2 rounded w-full"
+    placeholder="https://yourmenu.com"
+  />
+  {form.menuLink && (
+    <a
+      href={form.menuLink}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-block px-4 py-2 rounded bg-primary-600 text-white font-semibold shadow hover:bg-primary-700 transition mt-2"
+    >
+      View Menu
+    </a>
+  )}
+</div>
+
+{/* --- ADVANCED MENU SECTION --- */}
+<MenuEditor
+  restaurantId={null}
+  menu={form.menu || []}
+  refreshMenu={() => {}}
+  handleDeleteMenuItem={async (itemKey: string) => {
+    setForm(prev => ({
+      ...prev,
+      menu: prev.menu.map(section => ({
+        ...section,
+        items: Array.isArray(section.items)
+          ? section.items.filter((item: Sanity.MenuItem) => item._key !== itemKey)
+          : []
+      }))
+    }));
+  }}
+  setMenu={menu => setForm(prev => ({ ...prev, menu }))}
+ 
+/>
         {/* Submit */}
         <button
           type="submit"

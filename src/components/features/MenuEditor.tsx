@@ -1,80 +1,170 @@
 import { useState, useEffect } from 'react';
-import { urlFor, addMenuSectionAPI, addMenuItemAPI, deleteMenuSectionAPI, deleteMenuItemAPI, editMenuSectionAPI, editMenuItemAPI } from '@/lib/sanity';
+import { urlFor, addMenuSectionAPI, addMenuItemAPI, deleteMenuSectionAPI, editMenuSectionAPI, editMenuItemAPI } from '@/lib/sanity';
 
-export default function MenuEditor({ restaurantId, menu, refreshMenu }: { restaurantId: string, menu: any[], refreshMenu: () => void }) {
+function validateMenu(menu: any[]): string | null {
+  if (!Array.isArray(menu)) return 'Menu must be an array.';
+  if (menu.length === 0) return 'Menu must have at least one section.';
+  for (const section of menu) {
+    if (!section.section || typeof section.section !== 'string') {
+      return 'Each section must have a name.';
+    }
+    if (!Array.isArray(section.items) || section.items.length === 0) {
+      return `Section "${section.section}" must have at least one item.`;
+    }
+    for (const item of section.items) {
+      if (!item.name || typeof item.name !== 'string') {
+        return `Each item in "${section.section}" must have a name.`;
+      }
+      if (item.price === undefined || item.price === null || isNaN(item.price)) {
+        return `Each item in "${section.section}" must have a valid price.`;
+      }
+    }
+  }
+  return null;
+}
+
+export default function MenuEditor({
+  restaurantId,
+  menu,
+  refreshMenu,
+  handleDeleteMenuItem,
+  setMenu 
+}: {
+  restaurantId: string | null;
+  menu: any[];
+  refreshMenu: () => void;
+  handleDeleteMenuItem: (itemKey: string) => Promise<void>;
+  setMenu?: (menu: any[]) => void;
+}) {
   const [newSectionName, setNewSectionName] = useState('');
   const [activeSectionKey, setActiveSectionKey] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState('');
   const [newItemDescription, setNewItemDescription] = useState('');
   const [newItemPrice, setNewItemPrice] = useState<number>(0);
   const [newItemImage, setNewItemImage] = useState<File | null>(null);
+  const [loadingSection, setLoadingSection] = useState(false);
+  const [loadingItem, setLoadingItem] = useState(false);
 
   // Log menu prop changes
   useEffect(() => {
     console.log('Menu prop updated:', menu);
   }, [menu]);
 
-  // Crear sección (solo nombre)
+  // Crear secciónxw
   const handleCreateSection = async () => {
-    if (!newSectionName) {
-      console.log('No section name provided');
-      return;
-    }
-    try {
-      console.log('Creating section:', newSectionName, 'for restaurant:', restaurantId);
-      const result = await addMenuSectionAPI(restaurantId, newSectionName);
-      console.log('addMenuSectionAPI result:', result);
-      setNewSectionName('');
-      setActiveSectionKey(result.sectionKey);
-     await refreshMenu();
-console.log('Menu after refresh:', menu); // menu es la prop, se actualiza por el padre
-    } catch (err: any) {
-      console.error('Error creating section:', err);
-      alert('Error creating section: ' + (err?.message || 'Unknown error'));
+    if (!newSectionName) return;
+    setLoadingSection(true);
+    if (!restaurantId) {
+      setTimeout(() => {
+        setMenu?.([
+          ...menu,
+          {
+            _key: Math.random().toString(36).slice(2),
+            section: newSectionName,
+            items: []
+          }
+        ]);
+        setNewSectionName('');
+        setActiveSectionKey(null);
+        setLoadingSection(false);
+      }, 600); // Simula carga
+    } else {
+      try {
+        await addMenuSectionAPI(restaurantId, newSectionName);
+        setNewSectionName('');
+        setActiveSectionKey(null);
+        await refreshMenu();
+      } catch (err: any) {
+        alert('Error creating section: ' + (err?.message || 'Unknown error'));
+      }
+      setLoadingSection(false);
     }
   };
 
   // Eliminar sección
   const handleDeleteMenuSection = async (sectionKey: string) => {
-    console.log('Deleting section:', sectionKey);
-    await deleteMenuSectionAPI(restaurantId, sectionKey);
-    await refreshMenu();
-    console.log('Menu after delete:', menu);
+    if (!restaurantId) {
+      setMenu?.(menu.filter(section => section._key !== sectionKey));
+    } else {
+      await deleteMenuSectionAPI(restaurantId, sectionKey);
+      await refreshMenu();
+    }
   };
 
-  // Editar nombre de sección
+  // Editar sección
   const handleEditMenuSection = async (sectionKey: string, name: string) => {
-    console.log('Editing section:', sectionKey, 'New name:', name);
-    await editMenuSectionAPI(restaurantId, sectionKey, name);
-    await refreshMenu();
-    console.log('Menu after edit:', menu);
+    if (!restaurantId) {
+      setMenu?.(menu.map(section =>
+        section._key === sectionKey ? { ...section, section: name } : section
+      ));
+    } else {
+      await editMenuSectionAPI(restaurantId, sectionKey, name);
+      await refreshMenu();
+    }
   };
 
   // Eliminar ítem
-  const handleDeleteMenuItem = async (itemKey: string) => {
+  const handleDeleteMenuItemLocal = async (itemKey: string) => {
     console.log('Deleting item:', itemKey);
-    await deleteMenuItemAPI(restaurantId, itemKey);
-    await refreshMenu();
+    await handleDeleteMenuItem(itemKey); // Este ya refresca el menú en el padre
+    // NO llames a refreshMenu() aquí
     console.log('Menu after item delete:', menu);
   };
 
   // Editar ítem
   const handleEditMenuItem = async (itemKey: string, name?: string, description?: string, price?: number) => {
-    console.log('Editing item:', itemKey, { name, description, price });
-    await editMenuItemAPI(restaurantId, itemKey, name, description, price);
-    await refreshMenu();
-    console.log('Menu after item edit:', menu);
+    if (!restaurantId) {
+      // Edición local
+      setMenu?.(menu.map(section => {
+        const itemIndex = section.items?.findIndex((item: any) => item._key === itemKey);
+        if (itemIndex !== undefined && itemIndex !== -1) {
+          const updatedItems = [...(section.items || [])];
+          if (name !== undefined) updatedItems[itemIndex].name = name;
+          if (description !== undefined) updatedItems[itemIndex].description = description;
+          if (price !== undefined) updatedItems[itemIndex].price = price;
+          return { ...section, items: updatedItems };
+        }
+        return section;
+      }));
+    } else {
+      // Modo backend
+      await editMenuItemAPI(restaurantId, itemKey, name, description, price);
+      await refreshMenu();
+    }
   };
 
-  // Agregar ítem a sección (con imagen)
-  const handleAddMenuItem = async (sectionKey: string) => {
-    if (!newItemName) {
-      console.log('No item name provided');
-      return;
-    }
+ const handleAddMenuItem = async (sectionKey: string) => {
+  if (!newItemName) return;
+  setLoadingItem(true);
+  if (setMenu) {
+    setTimeout(() => {
+      setMenu(menu.map(section =>
+        section._key === sectionKey
+          ? {
+              ...section,
+              items: [
+                ...(section.items || []),
+                {
+                  _key: Math.random().toString(36).slice(2),
+                  name: newItemName,
+                  description: newItemDescription,
+                  price: newItemPrice,
+                  image: newItemImage ? { asset: { url: URL.createObjectURL(newItemImage) } } : undefined
+                }
+              ]
+            }
+          : section
+      ));
+      setNewItemName('');
+      setNewItemDescription('');
+      setNewItemPrice(0);
+      setNewItemImage(null);
+      setActiveSectionKey(null);
+      setLoadingItem(false);
+    }, 600); // Simula carga
+  } else if (restaurantId) {
     try {
-      console.log('Adding item to section:', sectionKey, { newItemName, newItemDescription, newItemPrice, newItemImage });
-      const result = await addMenuItemAPI(
+      await addMenuItemAPI(
         restaurantId,
         sectionKey,
         newItemName,
@@ -82,19 +172,20 @@ console.log('Menu after refresh:', menu); // menu es la prop, se actualiza por e
         newItemPrice,
         newItemImage || undefined
       );
-      console.log('addMenuItemAPI result:', result);
       setNewItemName('');
       setNewItemDescription('');
       setNewItemPrice(0);
       setNewItemImage(null);
       setActiveSectionKey(null);
       await refreshMenu();
-      console.log('Menu after item add:', menu);
     } catch (err: any) {
-      console.error('Error adding item:', err);
       alert('Error adding item: ' + (err?.message || 'Unknown error'));
     }
-  };
+    setLoadingItem(false);
+  }
+};
+
+  console.log('MenuEditor render, menu:', menu);
 
   return (
     <div className="mt-10">
@@ -108,14 +199,15 @@ console.log('Menu after refresh:', menu); // menu es la prop, se actualiza por e
           onChange={e => setNewSectionName(e.target.value)}
           className="border px-2 py-1 rounded w-1/2 mb-2"
           placeholder="Section name (e.g. Starters)"
+          disabled={loadingSection}
         />
         <button
           type="button"
           className="mt-4 px-3 py-1 bg-primary-600 text-white rounded text-sm"
-          disabled={!newSectionName}
+          disabled={!newSectionName || loadingSection}
           onClick={handleCreateSection}
         >
-          Create Section
+          {loadingSection ? 'Adding section...' : 'Create Section'}
         </button>
       </div>
       {/* Listado de secciones */}
@@ -164,20 +256,32 @@ console.log('Menu after refresh:', menu); // menu es la prop, se actualiza por e
                       className="border px-2 py-1 rounded w-2/5"
                       placeholder="Description"
                     />
-                    <input
-                      type="number"
-                      value={item.price || ''}
-                      onChange={e => handleEditMenuItem(item._key, item.name, item.description, Number(e.target.value))}
-                      className="border px-2 py-1 rounded w-1/6"
-                      placeholder="Price"
-                      min={0}
-                    />
+                   <input
+  type="number"
+  step="0.01"
+  min={0}
+  value={item.price !== undefined && item.price !== null ? item.price : ''}
+  onChange={e => {
+    const value = e.target.value;
+    handleEditMenuItem(
+      item._key,
+      item.name,
+      item.description,
+      value === '' ? undefined : Number(value)
+    );
+  }}
+  className="border px-2 py-1 rounded w-1/6"
+  placeholder="Price (AUD)"
+/>
+                    <span className="ml-1 text-gray-500">AUD</span>
                     <button
                       type="button"
                       className="text-xs text-red-600"
-                      onClick={() => handleDeleteMenuItem(item._key)}
+                      onClick={() => handleDeleteMenuItemLocal(item._key)}
                       title="Remove item"
-                    >✕</button>
+                    >
+                      ✕
+                    </button>
                   </div>
                 );
               })}
@@ -200,13 +304,17 @@ console.log('Menu after refresh:', menu); // menu es la prop, se actualiza por e
                   placeholder="Description"
                 />
                 <input
-                  type="number"
-                  value={newItemPrice}
-                  onChange={e => setNewItemPrice(Number(e.target.value))}
-                  className="border px-2 py-1 rounded w-1/6"
-                  placeholder="Price"
-                  min={0}
-                />
+  type="number"
+  step="0.01"
+  min={0}
+  value={newItemPrice === 0 ? '' : newItemPrice}
+  onChange={e => {
+    const value = e.target.value;
+    setNewItemPrice(value === '' ? 0 : Number(value));
+  }}
+  className="border px-2 py-1 rounded w-1/6"
+  placeholder="Price (AUD)"
+/>
                 <input
                   type="file"
                   accept="image/*"
@@ -223,10 +331,10 @@ console.log('Menu after refresh:', menu); // menu es la prop, se actualiza por e
                 <button
                   type="button"
                   className="px-3 py-1 bg-primary-600 text-white rounded text-sm"
-                  disabled={!newItemName}
+                  disabled={!newItemName || loadingItem}
                   onClick={() => handleAddMenuItem(section._key)}
                 >
-                  Add Item
+                  {loadingItem ? 'Adding item...' : 'Add Item'}
                 </button>
                 <button
                   type="button"

@@ -233,7 +233,7 @@ export const createRestaurantAPI = async (
     'latitude', 'longitude', 'menuLink', 'phoneStandard', 'crowd',
     'serviceOptions', 'amenities', 'accessibility', 'paymentMethods', 'offerings',
     'ownerNote', 'openingHours', 'hoursSummary', 'tags',
-    'whatsappNumber', 'orderLink', 'bookingLink'
+    'whatsappNumber', 'orderLink', 'bookingLink', 'menu'
   ];
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
@@ -241,6 +241,8 @@ export const createRestaurantAPI = async (
     if (key === 'mainImage' || key === 'galleryImages') return;
     if (key === 'openingHours') {
       formData.append(key, JSON.stringify(value));
+      } else if (key === 'menu' && Array.isArray(value)) {
+      formData.append('menu', JSON.stringify(value));
     } else if (Array.isArray(value) && value.length > 0) {
       formData.append(key, value.join(','));
     } else if (typeof value === 'object' && value !== null) {

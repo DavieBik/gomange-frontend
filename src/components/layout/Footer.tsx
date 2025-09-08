@@ -47,7 +47,7 @@ export default function Footer() {
 
             {/* Newsletter (opcional) */}
             <div className="mt-6">
-              <h4 className="text-base font-bold text-white uppercase tracking-wider mb-3">
+              <h4 className="text-base font-bold text-white uppercase tracking-wider mb-3 items-center justify-center">
                 Stay Updated
               </h4>
               <form className="flex flex-col sm:flex-row gap-2">
@@ -92,13 +92,18 @@ export default function Footer() {
           <div>
             <h3 className="text-xl font-bold mb-6 text-white">Legal</h3>
             <ul className="space-y-3">
-              {['Terms of Service', 'Privacy Policy', 'Cookie Policy', 'Accessibility'].map((item) => (
-                <li key={item}>
+              {[
+                { label: 'Terms & Conditions', href: '/footer/terms' },
+                { label: 'Privacy Policy', href: '/footer/privacy' },
+                { label: 'Cookie Preferences', href: '/footer/cookies' },
+                { label: 'Support', href: '/footer/support' },
+              ].map((item) => (
+                <li key={item.label}>
                   <Link
-                    href="#"
+                    href={item.href}
                     className="text-gray-300 hover:text-white transition-colors font-medium text-base hover:translate-x-1 inline-block"
                   >
-                    {item}
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -107,25 +112,11 @@ export default function Footer() {
         </div>
 
         {/* Información adicional */}
-        <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-300 text-base font-medium text-center md:text-left mb-4 md:mb-0">
+        <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col items-center justify-center">
+          <p className="text-gray-300 text-base font-medium text-center mb-4">
             © {new Date().getFullYear()} <span className="font-bold text-white">GoMange</span>. All rights reserved.
           </p>
-
-          <div className="flex flex-wrap justify-center gap-6 text-base text-gray-300">
-            <Link href="/terms" className="hover:text-white transition-colors font-medium hover:underline">
-              Terms & Conditions
-            </Link>
-            <Link href="/privacy" className="hover:text-white transition-colors font-medium hover:underline">
-              Privacy Policy
-            </Link>
-            <Link href="/cookies" className="hover:text-white transition-colors font-medium hover:underline">
-              Cookie Preferences
-            </Link>
-            <Link href="/support" className="hover:text-white transition-colors font-medium hover:underline">
-              Support
-            </Link>
-          </div>
+       
         </div>
       </div>
     </footer>

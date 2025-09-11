@@ -47,7 +47,7 @@ type MenuItem = {
   slug: Slug
   neighbourhood?: string
   streetAddress?: string
-  district?: string // Nuevo campo
+  district?: string
   cuisine?: string
   priceRange?: string
   summary?: string
@@ -66,7 +66,6 @@ type MenuItem = {
     saturday?: string
     sunday?: string
   }
-  // Nuevos campos
   gmbUrl?: string
   latitude?: number
   longitude?: number
@@ -81,10 +80,11 @@ type MenuItem = {
   offerings?: string[]
   ownerNote?: string
   hoursSummary?: string
-  // Campos ocultos
   whatsappNumber?: string
   orderLink?: string
   bookingLink?: string
+  whatsappLink?: string 
+  orderLink?: string   
 }
 
   interface Collection {

@@ -60,7 +60,9 @@ export default function NewRestaurantPage() {
     };
     latitude: number | null;
     longitude: number | null;
-    menuLink: string; 
+    menuLink: string;
+    whatsappLink: string; // <-- agrega aquí
+    orderLink: string;    // <-- agrega aquí
   }>({
     name: '',
     neighbourhood: '',
@@ -93,7 +95,9 @@ export default function NewRestaurantPage() {
     },
     latitude: null,
     longitude: null,
-    menuLink: '', 
+    menuLink: '',
+    whatsappLink: '', 
+    orderLink: '',    
   });
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -402,12 +406,20 @@ export default function NewRestaurantPage() {
             <input name="website" value={form.website} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
           </div>
           <div>
-            <label className="block mb-1 font-medium">Email</label>
-            <input name="email" value={form.email} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
-          </div>
-          <div>
             <label className="block mb-1 font-medium">Phone</label>
             <input name="phone" value={form.phone} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
+          </div>
+          <div>
+            <label className="block mb-1 font-medium">WhatsApp Link</label>
+            <input name="whatsappLink" value={form.whatsappLink || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" placeholder="https://wa.me/..." />
+          </div>
+          <div>
+            <label className="block mb-1 font-medium">Order Link</label>
+            <input name="orderLink" value={form.orderLink || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" placeholder="https://order.com/..." />
+          </div>
+          <div>
+            <label className="block mb-1 font-medium">Email</label>
+            <input name="email" value={form.email} onChange={handleChange} className="border px-3 py-2 rounded w-full" />
           </div>
           <div>
             <label className="block mb-1 font-medium">Instagram</label>

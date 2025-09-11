@@ -480,55 +480,61 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
           <aside className="w-full md:w-72 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-6 flex flex-col gap-4 sticky top-8">
               <h3 className="text-lg font-bold text-primary-700 mb-2">Contact & Order</h3>
-              {/* Phone */}
-              <button
-                className="btn btn-primary btn-md"
-                onClick={() =>
-                  restaurant.phone
-                    ? window.open(`tel:${restaurant.phone}`)
-                    : handleSoon('Coming soon')
-                }
-              >
-                {restaurant.phone ? 'Call' : 'Coming soon'}
-              </button>
-              {/* WhatsApp */}
-              <button
-                className="btn btn-secondary btn-md"
-                onClick={() =>
-                  whatsappLink
-                    ? window.open(whatsappLink, '_blank')
-                    : handleSoon('Coming soon')
-                }
-              >
-                {whatsappLink ? 'Order/Book by WhatsApp' : 'Coming soon'}
-              </button>
-              {/* Order Online */}
-              <button
-                className="btn btn-primary btn-md"
-                onClick={() =>
-                  restaurant.orderLink
-                    ? window.open(restaurant.orderLink, '_blank')
-                    : handleSoon('Coming soon')
-                }
-              >
-                {restaurant.orderLink ? 'Order Online' : 'Coming soon'}
-              </button>
-              {/* Website */}
-              <button
-                className="btn btn-accent btn-md"
-                onClick={() =>
-                  restaurant.website
-                    ? window.open(
-                        restaurant.website.startsWith('http')
-                          ? restaurant.website
-                          : `https://${restaurant.website}`,
-                        '_blank'
-                      )
-                    : handleSoon('Coming soon')
-                }
-              >
-                {restaurant.website ? 'Visit Website' : 'Coming soon'}
-              </button>
+              <div className="flex flex-col gap-3 mt-6">
+                {/* Call */}
+                {restaurant.phone ? (
+                  <a
+                    href={`tel:${restaurant.phone}`}
+                    className="px-4 py-2 rounded bg-primary-600 text-white font-medium text-center hover:bg-primary-700 transition"
+                  >
+                    Call
+                  </a>
+                ) : (
+                  <span className="px-4 py-2 rounded bg-gray-100 text-gray-400 text-center">Coming soon</span>
+                )}
+
+                {/* WhatsApp */}
+                {restaurant.whatsappLink ? (
+                  <a
+                    href={restaurant.whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded bg-accent-600 text-white font-medium text-center hover:bg-accent-700 transition"
+                  >
+                    WhatsApp
+                  </a>
+                ) : (
+                  <span className="px-4 py-2 rounded bg-gray-100 text-gray-400 text-center">Coming soon</span>
+                )}
+
+                {/* Order Online */}
+                {restaurant.orderLink ? (
+                  <a
+                    href={restaurant.orderLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded bg-secondary-600 text-white font-medium text-center hover:bg-secondary-700 transition"
+                  >
+                    Order Online
+                  </a>
+                ) : (
+                  <span className="px-4 py-2 rounded bg-gray-100 text-gray-400 text-center">Coming soon</span>
+                )}
+
+                {/* Website */}
+                {restaurant.website ? (
+                  <a
+                    href={restaurant.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded bg-primary-100 text-primary-700 font-medium text-center hover:bg-primary-200 transition"
+                  >
+                    Visit Website
+                  </a>
+                ) : (
+                  <span className="px-4 py-2 rounded bg-gray-100 text-gray-400 text-center">Coming soon</span>
+                )}
+              </div>
             </div>
             {/* Alert/Toast */}
             {alert && (

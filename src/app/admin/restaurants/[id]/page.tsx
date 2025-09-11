@@ -204,10 +204,11 @@ const [itemPrice, setItemPrice] = useState<number>(0);
   }
 
   try {
-    const response = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
-      method: 'PUT',
-      body: formData,
-    });
+   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const response = await fetch(`${apiUrl}/api/restaurants/${id}`, {
+  method: 'PUT',
+  body: formData,
+});
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     await response.json();
     setShowModal(true);

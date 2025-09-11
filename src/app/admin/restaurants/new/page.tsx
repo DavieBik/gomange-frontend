@@ -268,10 +268,11 @@ export default function NewRestaurantPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/restaurants', {
-        method: 'POST',
-        body: formData,
-      });
+     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const response = await fetch(`${apiUrl}/api/restaurants`, {
+  method: 'POST',
+  body: formData,
+});
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.log('Error response:', errorData);

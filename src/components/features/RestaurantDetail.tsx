@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { urlFor } from '@/lib/sanity'
 import type { Restaurant } from '@/types/sanity'
-import { MapPinIcon, PhoneIcon, GlobeAltIcon, DocumentTextIcon, StarIcon, ClockIcon } from '@heroicons/react/24/solid'
+import { MapPinIcon, PhoneIcon, GlobeAltIcon, DocumentTextIcon, StarIcon, ClockIcon, ChevronDownIcon } from '@heroicons/react/24/solid'
 import AddReviewModal from './AddReviewModal'
 
 interface RestaurantDetailProps {
@@ -42,9 +42,16 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
   const [alert, setAlert] = useState<string | null>(null)
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [galleryImages, setGalleryImages] = useState<{ url: string }[]>([])
+  const [selectedMenuSection, setSelectedMenuSection] = useState<string | number>(
+    restaurant.menu && restaurant.menu[0]?._key ? restaurant.menu[0]._key : 0
+  )
 
+  // Estado para desplegables
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
+  // Estado para desplegables de menú
+  const [openMenuSections, setOpenMenuSections] = useState<Record<string | number, boolean>>({})
 
-      function getRandomPlaceholders(arr: string[], count: number) {
+  function getRandomPlaceholders(arr: string[], count: number) {
   const shuffled = [...arr].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
 }
@@ -116,6 +123,13 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
   const handleSoon = (msg: string) => {
     setAlert(msg)
     setTimeout(() => setAlert(null), 2000)
+  }
+
+  const toggleGroup = (group: string) => {
+    setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }))
+  }
+  const toggleMenuSection = (key: string | number) => {
+    setOpenMenuSections(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
   return (
@@ -219,30 +233,7 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                       />
                     </div>
                   )}
-                  {/* Info chips */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {restaurant.neighbourhood && (
-                      <span className="px-2 py-1 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 text-xs">
-                        {restaurant.neighbourhood}
-                      </span>
-                    )}
-                    {restaurant.district && (
-                      <span className="px-2 py-1 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 text-xs">
-                        {restaurant.district}
-                      </span>
-                    )}
-                    {restaurant.cuisine && (
-                      <span className="px-2 py-1 bg-primary/10 text-primary font-semibold rounded-full border border-primary/20 text-xs">
-                        {restaurant.cuisine}
-                      </span>
-                    )}
-                    {restaurant.priceRange && (
-                      <span className="px-2 py-1 bg-white text-primary font-bold rounded-xl border border-primary/30 text-xs shadow">
-                        {restaurant.priceRange}
-                      </span>
-                    )}
-                  </div>
-                  {/* Summary & Description */}
+                    {/* Summary & Description */}
                   {restaurant.summary && (
                     <p className="text-gray-700 text-base mb-4">{restaurant.summary}</p>
                   )}
@@ -253,44 +244,78 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                       ))}
                     </div>
                   )}
-                  {/* Features */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {restaurant.tags?.map((tag: string, idx: number) => (
-                      <span key={idx} className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 text-xs font-semibold shadow-sm">
-                        {tag}
-                      </span>
-                    ))}
-                    {restaurant.amenities?.map((amenity: string, idx: number) => (
-                      <span key={idx} className="px-3 py-1 rounded-full bg-primary-50 text-primary-700 border border-primary-100 text-xs font-semibold shadow-sm">
-                        {amenity}
-                      </span>
-                    ))}
-                    {restaurant.accessibility?.map((item: string, idx: number) => (
-                      <span key={idx} className="px-3 py-1 rounded-full bg-secondary-50 text-secondary-700 border border-secondary-100 text-xs font-semibold shadow-sm">
-                        {item}
-                      </span>
-                    ))}
-                    {restaurant.paymentMethods?.map((method: string, idx: number) => (
-                      <span key={idx} className="px-3 py-1 rounded-full bg-accent-50 text-accent-700 border border-accent-100 text-xs font-semibold shadow-sm">
-                        {method}
-                      </span>
-                    ))}
-                    {restaurant.offerings?.map((offering: string, idx: number) => (
-                      <span key={idx} className="px-3 py-1 rounded-full bg-primary-100 text-primary-700 border border-primary-200 text-xs font-semibold shadow-sm">
-                        {offering}
-                      </span>
-                    ))}
-                    {restaurant.crowd && (
-                      <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200 text-xs font-semibold shadow-sm">
-                        {restaurant.crowd}
-                      </span>
-                    )}
-                    {restaurant.serviceOptions?.map((option: string, idx: number) => (
-                      <span key={idx} className="px-3 py-1 rounded-full bg-primary-50 text-primary-700 border border-primary-100 text-xs font-semibold shadow-sm">
-                        {option}
-                      </span>
+                  {/* Info chips agrupados como desplegables */}
+                  <div className="mb-4">
+                    {/* Grupo helper */}
+                    {[
+                      {
+                        key: 'tags',
+                        label: 'Tags',
+                        color: 'primary',
+                        items: restaurant.tags,
+                        chipClass: 'bg-gray-100 text-gray-700 border-gray-200'
+                      },
+                      {
+                        key: 'amenities',
+                        label: 'Amenities',
+                        color: 'primary',
+                        items: restaurant.amenities,
+                        chipClass: 'bg-primary-50 text-primary-700 border-primary-100'
+                      },
+                      {
+                        key: 'accessibility',
+                        label: 'Accessibility',
+                        color: 'secondary',
+                        items: restaurant.accessibility,
+                        chipClass: 'bg-secondary-50 text-secondary-700 border-secondary-100'
+                      },
+                      {
+                        key: 'paymentMethods',
+                        label: 'Payment Methods',
+                        color: 'accent',
+                        items: restaurant.paymentMethods,
+                        chipClass: 'bg-accent-50 text-accent-700 border-accent-100'
+                      },
+                      {
+                        key: 'serviceOptions',
+                        label: 'Service Options',
+                        color: 'primary',
+                        items: restaurant.serviceOptions,
+                        chipClass: 'bg-primary-50 text-primary-700 border-primary-100'
+                      }
+                    ].map(group => (
+                      group.items?.length > 0 && (
+                        <div key={group.key} className="mb-2 rounded-lg border border-gray-100 bg-gray-50 shadow-sm">
+                          <button
+                            type="button"
+                            className={`w-full flex justify-between items-center px-4 py-2 font-bold text-${group.color}-700 text-sm focus:outline-none`}
+                            onClick={() => toggleGroup(group.key)}
+                          >
+                            <span>{group.label}</span>
+                            <ChevronDownIcon
+                              className={`w-5 h-5 ml-2 transition-transform duration-300 ${openGroups[group.key] ? 'rotate-180' : ''}`}
+                            />
+                          </button>
+                          <div
+                            className={`overflow-hidden transition-all duration-300 ${openGroups[group.key] ? 'max-h-40 py-2 px-4' : 'max-h-0 px-4 py-0'}`}
+                          >
+                            <div className="flex flex-wrap gap-2">
+                              {group.items.map((item: string, idx: number) => (
+                                <span
+                                  key={idx}
+                                  className={`px-3 py-1 rounded-full border text-xs font-semibold shadow-sm ${group.chipClass}`}
+                                >
+                                  {item}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )
                     ))}
                   </div>
+                
+                 
                   {/* Owner Note */}
                   {restaurant.ownerNote && (
                     <div className="bg-primary-50 border-l-4 border-primary-400 p-4 rounded mb-6">
@@ -302,52 +327,82 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
               )}
               {tab === 'menu' && (
                 <div className="flex flex-col items-center justify-center min-h-[180px] w-full">
-                  {restaurant.menuLink && (
-                    <a
-                      href={restaurant.menuLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block px-6 py-3 rounded-full bg-secondary-600 text-white font-semibold shadow hover:bg-secondary-700 transition mb-4"
-                    >
-                      View Full Menu
-                    </a>
-                  )}
+                
                   {Array.isArray(restaurant.menu) && restaurant.menu.length > 0 ? (
-                    <div className="w-full">
-                      {restaurant.menu.map((section: any, idx: number) => (
-                        <div key={section._key || idx} className="mb-6">
-                          <h4 className="text-lg font-bold text-primary-700 mb-2">{section.section}</h4>
-                          <div className="grid gap-4">
-                            {Array.isArray(section.items) && section.items.length > 0 ? (
-                              section.items.map((item: any) => (
-                                <div key={item._key} className="flex items-center gap-4 bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm">
-                                  {item.image?.asset?._ref && (
-                                    <Image
-                                      src={urlFor(item.image).width(80).height(80).url()}
-                                      alt={item.name}
-                                      width={80}
-                                      height={80}
-                                      className="rounded-lg object-cover border"
-                                    />
-                                  )}
-                                  <div className="flex-1">
-                                    <div className="font-semibold text-primary-800">{item.name}</div>
-                                    {item.description && (
-                                      <div className="text-gray-600 text-sm">{item.description}</div>
-                                    )}
-                                  </div>
-                                  <div className="font-bold text-secondary-700 text-lg whitespace-nowrap">
-                                    {item.price ? `$${item.price}` : ''}
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="text-gray-400 italic">No items yet.</div>
-                            )}
-                          </div>
+                    <>
+                      {/* Chips de secciones alineadas a la izquierda y botón a la derecha */}
+                      <div className="flex items-center justify-between mb-6 w-full">
+                        {/* Chips de secciones */}
+                        <div className="flex gap-2 flex-wrap">
+                          {restaurant.menu.map((section: any, idx: number) => (
+                           <span
+  key={section._key || idx}
+  className={`px-4 py-1 font-medium text-base cursor-pointer transition
+    ${selectedMenuSection === (section._key || idx)
+      ? 'text-primary-800 border-b-2 border-primary-600'
+      : 'text-primary-700 hover:bg-primary-200'
+    }`}
+  onClick={() => setSelectedMenuSection(section._key || idx)}
+>
+  {section.section}
+</span>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                        {/* Botón pequeño y simple */}
+                        {restaurant.menuLink && (
+                          <a
+                            href={restaurant.menuLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 rounded-full bg-secondary-100 text-secondary-700 font-medium text-sm hover:bg-secondary-200 transition"
+                          >
+                            View Full Menu
+                          </a>
+                        )}
+                      </div>
+                      {/* Ítems de la sección activa */}
+                      <div className="w-full">
+                        {(() => {
+                          const activeIdx = restaurant.menu.findIndex(
+                            (section: any, idx: number) =>
+                              (section._key || idx) === selectedMenuSection
+                          )
+                          const activeSection = restaurant.menu[activeIdx] || restaurant.menu[0]
+                          return (
+                            <div>
+                              {Array.isArray(activeSection.items) && activeSection.items.length > 0 ? (
+                                <div className="grid gap-4">
+                                  {activeSection.items.map((item: any) => (
+                                    <div key={item._key} className="flex items-center gap-4 p-3">
+                                      {item.image?.asset?._ref && (
+                                        <Image
+                                          src={urlFor(item.image).width(80).height(80).url()}
+                                          alt={item.name}
+                                          width={80}
+                                          height={80}
+                                          className="rounded-lg object-cover border"
+                                        />
+                                      )}
+                                      <div className="flex-1">
+                                        <div className="font-semibold text-primary-800">{item.name}</div>
+                                        {item.description && (
+                                          <div className="text-gray-600 text-sm">{item.description}</div>
+                                        )}
+                                      </div>
+                                      <div className="font-bold text-secondary-700 text-lg whitespace-nowrap">
+                                        {item.price ? `$${item.price}` : ''}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-gray-400 italic">No items yet.</div>
+                              )}
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    </>
                   ) : (
                     <p className="text-gray-500 text-base">Menu not available.</p>
                   )}

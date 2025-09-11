@@ -153,78 +153,70 @@ const [itemPrice, setItemPrice] = useState<number>(0);
 
   const clearMainImage = () => setImageFile(null);
 
-  function validateMenu(menu: any[]): string | null {
-    if (!Array.isArray(menu)) return 'Menu must be an array.';
-    if (menu.length === 0) return 'Menu must have at least one section.';
-    for (const section of menu) {
-      if (!section.section || typeof section.section !== 'string') {
-        return 'Each section must have a name.';
+ function validateMenu(menu: any): string | null {
+  if (menu === undefined || menu === null) return null; // Permite menú ausente
+  if (!Array.isArray(menu)) return 'Menu must be an array.';
+  if (menu.length === 0) return null; // Permite menú vacío
+  for (const section of menu) {
+    if (!section.section || typeof section.section !== 'string') {
+      return 'Each section must have a name.';
+    }
+    if (!Array.isArray(section.items) || section.items.length === 0) {
+      return `Section "${section.section}" must have at least one item.`;
+    }
+    for (const item of section.items) {
+      if (!item.name || typeof item.name !== 'string') {
+        return `Each item in "${section.section}" must have a name.`;
       }
-      if (!Array.isArray(section.items) || section.items.length === 0) {
-        return `Section "${section.section}" must have at least one item.`;
-      }
-      for (const item of section.items) {
-        if (!item.name || typeof item.name !== 'string') {
-          return `Each item in "${section.section}" must have a name.`;
-        }
-        if (item.price === undefined || item.price === null || isNaN(item.price)) {
-          return `Each item in "${section.section}" must have a valid price.`;
-        }
+      if (item.price === undefined || item.price === null || isNaN(item.price)) {
+        return `Each item in "${section.section}" must have a valid price.`;
       }
     }
-    return null;
   }
+  return null;
+}
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    // --- VALIDACIÓN EXTRA DEL MENÚ ---
-    const error = validateMenu(form.menu || []);
-    if (error) {
-      alert(error);
-      setLoading(false);
-      return;
+  // --- FORZAR MENU COMO ARRAY SI NO EXISTE ---
+  const menuValue = Array.isArray(form.menu) ? form.menu : [];
+  
+  const formData = new FormData();
+  Object.entries(form).forEach(([key, value]) => {
+    if (key === 'mainImage' || key === 'galleryImages') return;
+    // --- ENVÍA EL MENÚ COMO JSON STRING ---
+    if (key === 'menu') {
+      formData.append('menu', JSON.stringify(menuValue));
+    } else if (Array.isArray(value)) {
+      formData.append(key, value.join(','));
+    } else if (typeof value === 'object' && value !== null) {
+      formData.append(key, JSON.stringify(value));
+    } else if (value !== undefined && value !== null) {
+      formData.append(key, value as string);
     }
+  });
 
-    const formData = new FormData();
-    Object.entries(form).forEach(([key, value]) => {
-      // No agregues mainImage ni galleryImages aquí
-      if (key === 'mainImage' || key === 'galleryImages') return;
-      // --- ENVÍA EL MENÚ COMO JSON STRING ---
-      if (key === 'menu' && Array.isArray(value)) {
-        formData.append('menu', JSON.stringify(value));
-      } else if (Array.isArray(value)) {
-        formData.append(key, value.join(','));
-      } else if (typeof value === 'object' && value !== null) {
-        formData.append(key, JSON.stringify(value));
-      } else if (value !== undefined && value !== null) {
-        formData.append(key, value as string);
-      }
+  if (imageFile) formData.append('mainImage', imageFile);
+  if (galleryFiles && galleryFiles.length > 0) {
+    galleryFiles.forEach(file => formData.append('galleryImages', file));
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
+      method: 'PUT',
+      body: formData,
     });
-
-    // Solo agrega mainImage si hay una nueva imagen seleccionada
-    if (imageFile) formData.append('mainImage', imageFile);
-
-    // Solo agrega galleryImages si hay nuevas imágenes seleccionadas
-    if (galleryFiles && galleryFiles.length > 0) {
-      galleryFiles.forEach(file => formData.append('galleryImages', file));
-    }
-
-    try {
-      const response = await fetch(`http://localhost:3001/api/restaurants/${id}`, {
-        method: 'PUT',
-        body: formData,
-      });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      await response.json();
-      setShowModal(true);
-    } catch (err) {
-      console.error('Error updating restaurant:', err);
-      alert(`Error updating restaurant: ${err instanceof Error ? err.message : 'Unknown error'}`);
-    }
-    setLoading(false);
-  };
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    await response.json();
+    setShowModal(true);
+  } catch (err) {
+    console.error('Error updating restaurant:', err);
+    alert(`Error updating restaurant: ${err instanceof Error ? err.message : 'Unknown error'}`);
+  }
+  setLoading(false);
+};
 
   const handleDeleteReview = async (reviewKey: string) => {
     console.log('Delete review:', reviewKey); // <-- LOG

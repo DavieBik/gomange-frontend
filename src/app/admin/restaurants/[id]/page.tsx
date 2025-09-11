@@ -399,11 +399,23 @@ const [itemPrice, setItemPrice] = useState<number>(0);
           </div>
           <div>
             <label className="block mb-1 font-medium">Instagram</label>
-            <input name="instagram" value={form.instagram || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" placeholder="@yourrestaurant" />
+            <input
+              name="instagram"
+              value={form.instagram || ''}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded w-full"
+              placeholder="@yourrestaurant"
+            />
           </div>
           <div>
-            <label className="block mb-1 font-medium">WhatsApp Link</label>
-            <input name="whatsappLink" value={form.whatsappLink || ''} onChange={handleChange} className="border px-3 py-2 rounded w-full" placeholder="https://wa.me/..." />
+            <label className="block mb-1 font-medium">WhatsApp Number</label>
+            <input
+              name="whatsappNumber"
+              value={form.whatsappNumber || ''}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded w-full"
+              placeholder="+5491123456789"
+            />
           </div>
           <div>
             <label className="block mb-1 font-medium">Order Link</label>

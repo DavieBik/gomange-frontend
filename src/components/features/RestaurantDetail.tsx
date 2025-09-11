@@ -145,6 +145,24 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
             <span className="font-medium">{restaurant.streetAddress}</span>
           </div>
         )}
+        {/* Instagram pequeño en About */}
+        {tab === 'about' && restaurant.instagram && (
+          <div className="flex items-center gap-2 mb-2 justify-center md:justify-start">
+            <svg width="18" height="18" fill="currentColor" className="text-pink-500">
+              <circle cx="9" cy="9" r="8" stroke="currentColor" strokeWidth="2" fill="none"/>
+              <circle cx="9" cy="9" r="3" fill="currentColor"/>
+              <rect x="13" y="4" width="2" height="2" rx="1" fill="currentColor"/>
+            </svg>
+            <a
+              href={restaurant.instagram.startsWith('http') ? restaurant.instagram : `https://instagram.com/${restaurant.instagram.replace('@', '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-pink-600 text-sm font-medium hover:underline"
+            >
+              {restaurant.instagram.replace('https://instagram.com/', '').replace('@', '')}
+            </a>
+          </div>
+        )}
 
         {/* Main layout: info + sidebar */}
         <div className="flex flex-col md:flex-row gap-8">
@@ -494,9 +512,9 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                 )}
 
                 {/* WhatsApp */}
-                {restaurant.whatsappLink ? (
+                {restaurant.whatsappNumber ? (
                   <a
-                    href={restaurant.whatsappLink}
+                    href={`https://wa.me/${restaurant.whatsappNumber.replace(/\D/g, '')}?text=Hi! I want to order or book at ${restaurant.name}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-4 py-2 rounded bg-accent-600 text-white font-medium text-center hover:bg-accent-700 transition"
@@ -534,6 +552,8 @@ export default function RestaurantDetail({ restaurant }: RestaurantDetailProps) 
                 ) : (
                   <span className="px-4 py-2 rounded bg-gray-100 text-gray-400 text-center">Coming soon</span>
                 )}
+
+               
               </div>
             </div>
             {/* Alert/Toast */}
